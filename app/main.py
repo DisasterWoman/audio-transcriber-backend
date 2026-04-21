@@ -5,5 +5,5 @@ from app.core.settings import settings
 
 app = FastAPI(title=settings.app_name)
 
-app.include_router(main_router)
-app.include_router(jobs_router)
+app.include_router(main_router, prefix=settings.api_prefix)
+app.include_router(jobs_router, prefix=settings.api_prefix)
