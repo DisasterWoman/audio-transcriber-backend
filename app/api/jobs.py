@@ -1,32 +1,25 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.job import JobCreate, Job
+from app.services.job_service import get_all_jobs, get_job_by_id, create_job
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
-
-jobs = []
 
 
 @router.get("/", response_model=list[Job])
 def get_jobs():
-    return jobs
+    return get_all_jobs()
 
 
 @router.get("/{job_id}", response_model=Job)
 def get_job(job_id: int):
-    for job in jobs:
-        if job["id"] == job_id:
-            return job
+    job = get_job_by_id(job_id)
 
-    raise HTTPException(status_code=404, detail="Job not found")
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return job
 
 
 @router.post("/", response_model=Job)
-def create_job(job: JobCreate):
-    new_job = {
-        "id": len(jobs) + 1,
-        "filename": job.filename,
-        "language": job.language,
-        "status": "queued",
-    }
-    jobs.append(new_job)
-    return new_job
+def create_new_job(job: JobCreate):
+    return create_job(job)
