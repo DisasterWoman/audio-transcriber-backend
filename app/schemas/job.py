@@ -9,5 +9,6 @@ class JobCreate(BaseModel):
 class Job(BaseModel):
     id: int
     filename: str
+    original_filename: str
     language: str
     status: str

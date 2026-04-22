@@ -45,6 +45,7 @@ async def upload_audio(
 
     job_data = JobCreate(
         filename=stored_filename,
+        original_filename=file.filename,
         language=language,
     )
 
