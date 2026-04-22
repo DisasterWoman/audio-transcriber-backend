@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class JobCreate(BaseModel):
     filename: str
+    original_filename: str
     language: str
 
 

@@ -1,6 +1,5 @@
 from app.schemas.job import JobCreate
 
-
 jobs = []
 
 
@@ -20,6 +19,7 @@ def create_job(job_data: JobCreate):
     new_job = {
         "id": len(jobs) + 1,
         "filename": job_data.filename,
+        "original_filename": job_data.original_filename,
         "language": job_data.language,
         "status": "queued",
     }
