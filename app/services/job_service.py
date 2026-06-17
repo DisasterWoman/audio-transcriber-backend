@@ -1,4 +1,5 @@
 from app.schemas.job import JobCreate
+from app.schemas.job_status import JobStatus
 
 jobs = []
 
@@ -21,7 +22,7 @@ def create_job(job_data: JobCreate):
         "filename": job_data.filename,
         "original_filename": job_data.original_filename,
         "language": job_data.language,
-        "status": "queued",
+        "status": JobStatus.queued,
     }
     jobs.append(new_job)
     return new_job
