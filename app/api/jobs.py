@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.schemas.job import JobCreate, Job
 from app.services.job_service import get_all_jobs, get_job_by_id, create_job
+from app.services.file_validation import validate_audio_file
 from app.core.settings import settings
 import os
 import uuid
@@ -33,6 +34,8 @@ async def upload_audio(
     file: UploadFile = File(...),
     language: str = "ru",
 ):
+    validate_audio_file(file.filename)
+
     file_id = str(uuid.uuid4())
 
     file_extension = file.filename.split(".")[-1]
