@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
 
@@ -17,6 +19,8 @@ def get_job_by_id(job_id: int):
 
 
 def create_job(job_data: JobCreate):
+    now = datetime.now(UTC)
+
     new_job = {
         "id": len(jobs) + 1,
         "filename": job_data.filename,
@@ -24,6 +28,8 @@ def create_job(job_data: JobCreate):
         "file_size_bytes": job_data.file_size_bytes,
         "language": job_data.language,
         "status": JobStatus.queued,
+        "created_at": now,
+        "updated_at": now,
     }
     jobs.append(new_job)
     return new_job

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 from app.schemas.job_status import JobStatus
 
@@ -16,3 +18,5 @@ class Job(BaseModel):
     file_size_bytes: int
     language: str
     status: JobStatus
+    created_at: datetime
+    updated_at: datetime
