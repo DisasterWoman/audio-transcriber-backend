@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.schemas.job import JobCreate, Job, JobStatusUpdate
 from app.services.job_service import (
+    InvalidJobStatusTransition,
     get_all_jobs,
     get_job_by_id,
     create_job,
@@ -34,7 +35,10 @@ def create_new_job(job: JobCreate):
 
 @router.patch("/{job_id}/status", response_model=Job)
 def update_status(job_id: int, status_update: JobStatusUpdate):
-    job = update_job_status(job_id, status_update.status)
+    try:
+        job = update_job_status(job_id, status_update.status)
+    except InvalidJobStatusTransition as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
