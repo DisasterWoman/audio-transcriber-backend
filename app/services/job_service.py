@@ -51,12 +51,17 @@ def create_job(job_data: JobCreate):
         "updated_at": now,
         "started_at": None,
         "completed_at": None,
+        "error_message": None,
     }
 
     return save_job(new_job)
 
 
-def update_job_status(job_id: int, status: JobStatus):
+def update_job_status(
+    job_id: int,
+    status: JobStatus,
+    error_message: str | None = None,
+):
     job = get_job_by_id(job_id)
 
     if job is None:
@@ -82,5 +87,8 @@ def update_job_status(job_id: int, status: JobStatus):
 
     if status in COMPLETED_STATUSES:
         job["completed_at"] = now
+
+    if status == JobStatus.failed:
+        job["error_message"] = error_message or "Unknown transcription error"
 
     return job

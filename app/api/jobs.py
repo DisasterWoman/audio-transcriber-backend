@@ -36,7 +36,11 @@ def create_new_job(job: JobCreate):
 @router.patch("/{job_id}/status", response_model=Job)
 def update_status(job_id: int, status_update: JobStatusUpdate):
     try:
-        job = update_job_status(job_id, status_update.status)
+        job = update_job_status(
+            job_id,
+            status_update.status,
+            status_update.error_message,
+        )
     except InvalidJobStatusTransition as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 

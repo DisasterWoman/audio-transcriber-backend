@@ -13,6 +13,7 @@ class JobCreate(BaseModel):
 
 class JobStatusUpdate(BaseModel):
     status: JobStatus
+    error_message: str | None = Field(default=None, max_length=1000)
 
 
 class Job(BaseModel):
@@ -26,3 +27,4 @@ class Job(BaseModel):
     updated_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+    error_message: str | None
