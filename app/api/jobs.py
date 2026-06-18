@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
@@ -22,8 +22,15 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 def get_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ):
-    return get_all_jobs(status=status, language=language)
+    return get_all_jobs(
+        status=status,
+        language=language,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/{job_id}", response_model=Job)

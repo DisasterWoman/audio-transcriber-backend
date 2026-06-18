@@ -46,6 +46,8 @@ class MissingJobTranscript(Exception):
 def get_all_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ):
     jobs = list_jobs()
 
@@ -55,7 +57,7 @@ def get_all_jobs(
     if language is not None:
         jobs = [job for job in jobs if job["language"] == language]
 
-    return jobs
+    return jobs[offset : offset + limit]
 
 
 def get_job_by_id(job_id: int):
