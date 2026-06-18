@@ -8,6 +8,7 @@ from app.repositories.job_repository import (
 )
 from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
+from app.schemas.language import LanguageCode
 
 
 ALLOWED_STATUS_TRANSITIONS = {
@@ -42,8 +43,19 @@ class MissingJobTranscript(Exception):
         super().__init__("Cannot mark job as done before transcript is saved")
 
 
-def get_all_jobs():
-    return list_jobs()
+def get_all_jobs(
+    status: JobStatus | None = None,
+    language: LanguageCode | None = None,
+):
+    jobs = list_jobs()
+
+    if status is not None:
+        jobs = [job for job in jobs if job["status"] == status]
+
+    if language is not None:
+        jobs = [job for job in jobs if job["language"] == language]
+
+    return jobs
 
 
 def get_job_by_id(job_id: int):

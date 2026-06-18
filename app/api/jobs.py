@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
+from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.services.job_service import (
     InvalidJobStatusTransition,
@@ -18,8 +19,11 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
 @router.get("/", response_model=list[Job])
-def get_jobs():
-    return get_all_jobs()
+def get_jobs(
+    status: JobStatus | None = None,
+    language: LanguageCode | None = None,
+):
+    return get_all_jobs(status=status, language=language)
 
 
 @router.get("/{job_id}", response_model=Job)
