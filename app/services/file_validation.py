@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from app.core.settings import settings
 
 
-def is_allowed_audio_extension(filename: str) -> bool:
-    if "." not in filename:
+def is_allowed_audio_extension(filename: str | None) -> bool:
+    if not filename or "." not in filename:
         return False
 
     extension = filename.split(".")[-1].lower()
@@ -15,7 +15,7 @@ def is_allowed_audio_extension(filename: str) -> bool:
     return extension in allowed_extensions
 
 
-def validate_audio_file(filename: str) -> None:
+def validate_audio_file(filename: str | None) -> None:
     if not is_allowed_audio_extension(filename):
         raise HTTPException(
             status_code=400,

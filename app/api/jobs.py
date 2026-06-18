@@ -2,9 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.schemas.job import JobCreate, Job
 from app.services.job_service import get_all_jobs, get_job_by_id, create_job
 from app.services.file_validation import validate_audio_file
-from app.core.settings import settings
-import os
-import uuid
+from app.services.file_storage import save_uploaded_file
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -36,15 +34,7 @@ async def upload_audio(
 ):
     validate_audio_file(file.filename)
 
-    file_id = str(uuid.uuid4())
-
-    file_extension = file.filename.split(".")[-1]
-    stored_filename = f"{file_id}.{file_extension}"
-    file_path = os.path.join(settings.upload_dir, stored_filename)
-
-    with open(file_path, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
+    stored_filename = await save_uploaded_file(file)
 
     job_data = JobCreate(
         filename=stored_filename,
