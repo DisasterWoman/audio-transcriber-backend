@@ -89,6 +89,6 @@ def update_job_status(
         job["completed_at"] = now
 
     if status == JobStatus.failed:
-        job["error_message"] = error_message or "Unknown transcription error"
+        job["error_message"] = error_message
 
     return job
