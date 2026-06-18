@@ -17,6 +17,8 @@ ALLOWED_STATUS_TRANSITIONS = {
     JobStatus.failed: set(),
 }
 
+COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed}
+
 
 class InvalidJobStatusTransition(Exception):
     def __init__(self, current_status: JobStatus, new_status: JobStatus):
@@ -47,6 +49,7 @@ def create_job(job_data: JobCreate):
         "status": JobStatus.queued,
         "created_at": now,
         "updated_at": now,
+        "completed_at": None,
     }
 
     return save_job(new_job)
@@ -68,7 +71,12 @@ def update_job_status(job_id: int, status: JobStatus):
     if status not in allowed_next_statuses:
         raise InvalidJobStatusTransition(current_status, status)
 
+    now = datetime.now(UTC)
+
     job["status"] = status
-    job["updated_at"] = datetime.now(UTC)
+    job["updated_at"] = now
+
+    if status in COMPLETED_STATUSES:
+        job["completed_at"] = now
 
     return job
