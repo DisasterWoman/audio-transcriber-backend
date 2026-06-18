@@ -29,6 +29,14 @@ class InvalidJobStatusTransition(Exception):
         )
 
 
+class InvalidJobTranscriptUpdate(Exception):
+    def __init__(self, status: JobStatus):
+        self.status = status
+        super().__init__(
+            f"Cannot update transcript when job status is {status.value}"
+        )
+
+
 def get_all_jobs():
     return list_jobs()
 
@@ -52,6 +60,7 @@ def create_job(job_data: JobCreate):
         "started_at": None,
         "completed_at": None,
         "error_message": None,
+        "transcript_text": None,
     }
 
     return save_job(new_job)
@@ -90,5 +99,20 @@ def update_job_status(
 
     if status == JobStatus.failed:
         job["error_message"] = error_message
+
+    return job
+
+
+def update_job_transcript(job_id: int, transcript_text: str):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    if job["status"] != JobStatus.processing:
+        raise InvalidJobTranscriptUpdate(job["status"])
+
+    job["transcript_text"] = transcript_text
+    job["updated_at"] = datetime.now(UTC)
 
     return job

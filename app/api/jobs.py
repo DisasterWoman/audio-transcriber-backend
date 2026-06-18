@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from app.schemas.job import JobCreate, Job, JobStatusUpdate
+from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
 from app.services.job_service import (
     InvalidJobStatusTransition,
+    InvalidJobTranscriptUpdate,
     get_all_jobs,
     get_job_by_id,
     create_job,
     update_job_status,
+    update_job_transcript,
 )
 from app.services.file_validation import validate_audio_file
 from app.services.file_storage import save_uploaded_file
@@ -42,6 +44,19 @@ def update_status(job_id: int, status_update: JobStatusUpdate):
             status_update.error_message,
         )
     except InvalidJobStatusTransition as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return job
+
+
+@router.patch("/{job_id}/transcript", response_model=Job)
+def update_transcript(job_id: int, transcript_update: JobTranscriptUpdate):
+    try:
+        job = update_job_transcript(job_id, transcript_update.transcript_text)
+    except InvalidJobTranscriptUpdate as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 
     if job is None:

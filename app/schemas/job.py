@@ -26,6 +26,10 @@ class JobStatusUpdate(BaseModel):
         return self
 
 
+class JobTranscriptUpdate(BaseModel):
+    transcript_text: str = Field(min_length=1)
+
+
 class Job(BaseModel):
     id: int
     filename: str
@@ -38,3 +42,4 @@ class Job(BaseModel):
     started_at: datetime | None
     completed_at: datetime | None
     error_message: str | None
+    transcript_text: str | None
