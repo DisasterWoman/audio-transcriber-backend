@@ -49,6 +49,7 @@ def create_job(job_data: JobCreate):
         "status": JobStatus.queued,
         "created_at": now,
         "updated_at": now,
+        "started_at": None,
         "completed_at": None,
     }
 
@@ -75,6 +76,9 @@ def update_job_status(job_id: int, status: JobStatus):
 
     job["status"] = status
     job["updated_at"] = now
+
+    if status == JobStatus.processing:
+        job["started_at"] = now
 
     if status in COMPLETED_STATUSES:
         job["completed_at"] = now
