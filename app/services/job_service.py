@@ -33,3 +33,15 @@ def create_job(job_data: JobCreate):
     }
     jobs.append(new_job)
     return new_job
+
+
+def update_job_status(job_id: int, status: JobStatus):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    job["status"] = status
+    job["updated_at"] = datetime.now(UTC)
+
+    return job

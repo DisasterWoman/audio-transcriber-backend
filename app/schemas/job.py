@@ -11,6 +11,10 @@ class JobCreate(BaseModel):
     language: str
 
 
+class JobStatusUpdate(BaseModel):
+    status: JobStatus
+
+
 class Job(BaseModel):
     id: int
     filename: str

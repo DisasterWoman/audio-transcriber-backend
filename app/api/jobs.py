@@ -1,6 +1,11 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from app.schemas.job import JobCreate, Job
-from app.services.job_service import get_all_jobs, get_job_by_id, create_job
+from app.schemas.job import JobCreate, Job, JobStatusUpdate
+from app.services.job_service import (
+    get_all_jobs,
+    get_job_by_id,
+    create_job,
+    update_job_status,
+)
 from app.services.file_validation import validate_audio_file
 from app.services.file_storage import save_uploaded_file
 
@@ -25,6 +30,16 @@ def get_job(job_id: int):
 @router.post("/", response_model=Job)
 def create_new_job(job: JobCreate):
     return create_job(job)
+
+
+@router.patch("/{job_id}/status", response_model=Job)
+def update_status(job_id: int, status_update: JobStatusUpdate):
+    job = update_job_status(job_id, status_update.status)
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return job
 
 
 @router.post("/upload", response_model=Job)
