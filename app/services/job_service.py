@@ -21,6 +21,7 @@ def create_job(job_data: JobCreate):
         "id": len(jobs) + 1,
         "filename": job_data.filename,
         "original_filename": job_data.original_filename,
+        "file_size_bytes": job_data.file_size_bytes,
         "language": job_data.language,
         "status": JobStatus.queued,
     }

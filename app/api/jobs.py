@@ -34,11 +34,12 @@ async def upload_audio(
 ):
     validate_audio_file(file.filename)
 
-    stored_filename = await save_uploaded_file(file)
+    stored_file = await save_uploaded_file(file)
 
     job_data = JobCreate(
-        filename=stored_filename,
-        original_filename=file.filename,
+        filename=stored_file.filename,
+        original_filename=stored_file.original_filename,
+        file_size_bytes=stored_file.size_bytes,
         language=language,
     )
 
