@@ -8,5 +8,8 @@ __pycache__/
 # Env files
 .env
 
+# User uploads
+uploads/
+
 # Mac
 .DS_Store
