@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
     app_name: str
     app_env: str
@@ -8,9 +9,11 @@ class Settings(BaseSettings):
     debug: bool
 
     upload_dir: str
+    max_upload_size_mb: int = 25
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     allowed_audio_extensions: str
+
 
 settings = Settings()

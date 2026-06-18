@@ -21,3 +21,13 @@ def validate_audio_file(filename: str | None) -> None:
             status_code=400,
             detail="Unsupported file extension",
         )
+
+
+def validate_audio_file_size(file_size_bytes: int) -> None:
+    max_size_bytes = settings.max_upload_size_mb * 1024 * 1024
+
+    if file_size_bytes > max_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File is too large. Maximum size is {settings.max_upload_size_mb} MB",
+        )
