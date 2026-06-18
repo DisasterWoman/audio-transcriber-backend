@@ -37,6 +37,11 @@ class InvalidJobTranscriptUpdate(Exception):
         )
 
 
+class MissingJobTranscript(Exception):
+    def __init__(self):
+        super().__init__("Cannot mark job as done before transcript is saved")
+
+
 def get_all_jobs():
     return list_jobs()
 
@@ -85,6 +90,9 @@ def update_job_status(
 
     if status not in allowed_next_statuses:
         raise InvalidJobStatusTransition(current_status, status)
+
+    if status == JobStatus.done and not job["transcript_text"]:
+        raise MissingJobTranscript()
 
     now = datetime.now(UTC)
 

@@ -3,6 +3,7 @@ from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
 from app.services.job_service import (
     InvalidJobStatusTransition,
     InvalidJobTranscriptUpdate,
+    MissingJobTranscript,
     get_all_jobs,
     get_job_by_id,
     create_job,
@@ -43,7 +44,7 @@ def update_status(job_id: int, status_update: JobStatusUpdate):
             status_update.status,
             status_update.error_message,
         )
-    except InvalidJobStatusTransition as error:
+    except (InvalidJobStatusTransition, MissingJobTranscript) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
 
     if job is None:
