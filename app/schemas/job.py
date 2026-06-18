@@ -2,13 +2,14 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, model_validator
 from app.schemas.job_status import JobStatus
+from app.schemas.language import LanguageCode
 
 
 class JobCreate(BaseModel):
     filename: str
     original_filename: str
     file_size_bytes: int = Field(ge=0)
-    language: str
+    language: LanguageCode
 
 
 class JobStatusUpdate(BaseModel):
@@ -35,7 +36,7 @@ class Job(BaseModel):
     filename: str
     original_filename: str
     file_size_bytes: int
-    language: str
+    language: LanguageCode
     status: JobStatus
     created_at: datetime
     updated_at: datetime

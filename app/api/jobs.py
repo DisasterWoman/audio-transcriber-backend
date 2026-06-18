@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
+from app.schemas.language import LanguageCode
 from app.services.job_service import (
     InvalidJobStatusTransition,
     InvalidJobTranscriptUpdate,
@@ -69,7 +70,7 @@ def update_transcript(job_id: int, transcript_update: JobTranscriptUpdate):
 @router.post("/upload", response_model=Job)
 async def upload_audio(
     file: UploadFile = File(...),
-    language: str = "ru",
+    language: LanguageCode = Form(LanguageCode.ru),
 ):
     validate_audio_file(file.filename)
 
