@@ -24,6 +24,7 @@ from app.services.job_service import (
 from app.services.file_validation import (
     validate_audio_content_type,
     validate_audio_file,
+    validate_audio_file_size,
 )
 from app.services.file_storage import save_uploaded_file
 
@@ -54,6 +55,10 @@ def get_job(job_id: int):
 
 @router.post("/", response_model=Job)
 def create_new_job(job: JobCreate):
+    validate_audio_file(job.original_filename)
+    validate_audio_content_type(job.content_type)
+    validate_audio_file_size(job.file_size_bytes)
+
     return create_job(job)
 
 
