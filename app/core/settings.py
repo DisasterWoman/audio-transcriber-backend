@@ -25,5 +25,13 @@ class Settings(BaseSettings):
             if origin.strip()
         ]
 
+    @property
+    def allowed_audio_extension_set(self) -> set[str]:
+        return {
+            extension.strip().lower().lstrip(".")
+            for extension in self.allowed_audio_extensions.split(",")
+            if extension.strip()
+        }
+
 
 settings = Settings()

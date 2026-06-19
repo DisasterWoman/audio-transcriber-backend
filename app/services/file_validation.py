@@ -1,18 +1,19 @@
+from pathlib import Path
+
 from fastapi import HTTPException
 from app.core.settings import settings
 
 
 def is_allowed_audio_extension(filename: str | None) -> bool:
-    if not filename or "." not in filename:
+    if not filename:
         return False
 
-    extension = filename.split(".")[-1].lower()
+    extension = Path(filename).suffix.lower().lstrip(".")
 
-    allowed_extensions = [
-        ext.strip() for ext in settings.allowed_audio_extensions.split(",")
-    ]
+    if not extension:
+        return False
 
-    return extension in allowed_extensions
+    return extension in settings.allowed_audio_extension_set
 
 
 def validate_audio_file(filename: str | None) -> None:
