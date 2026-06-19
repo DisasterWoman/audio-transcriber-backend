@@ -24,6 +24,22 @@ def validate_audio_file(filename: str | None) -> None:
         )
 
 
+def validate_audio_content_type(content_type: str | None) -> None:
+    if not content_type:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing file content type",
+        )
+
+    normalized_content_type = content_type.lower()
+
+    if normalized_content_type not in settings.allowed_audio_mime_type_set:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file content type",
+        )
+
+
 def validate_audio_file_size(file_size_bytes: int) -> None:
     max_size_bytes = settings.max_upload_size_mb * 1024 * 1024
 

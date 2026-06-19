@@ -21,7 +21,10 @@ from app.services.job_service import (
     update_job_status,
     update_job_transcript,
 )
-from app.services.file_validation import validate_audio_file
+from app.services.file_validation import (
+    validate_audio_content_type,
+    validate_audio_file,
+)
 from app.services.file_storage import save_uploaded_file
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -90,6 +93,7 @@ async def upload_audio(
     language: LanguageCode = Form(LanguageCode.ru),
 ):
     validate_audio_file(file.filename)
+    validate_audio_content_type(file.content_type)
 
     stored_file = await save_uploaded_file(file)
 
