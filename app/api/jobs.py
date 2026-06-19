@@ -1,5 +1,11 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
-from app.schemas.job import JobCreate, Job, JobStatusUpdate, JobTranscriptUpdate
+from app.schemas.job import (
+    JobCreate,
+    Job,
+    JobList,
+    JobStatusUpdate,
+    JobTranscriptUpdate,
+)
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.services.job_service import (
@@ -18,7 +24,7 @@ from app.services.file_storage import save_uploaded_file
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
-@router.get("/", response_model=list[Job])
+@router.get("/", response_model=JobList)
 def get_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,

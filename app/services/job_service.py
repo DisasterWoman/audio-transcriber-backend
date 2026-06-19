@@ -57,7 +57,14 @@ def get_all_jobs(
     if language is not None:
         jobs = [job for job in jobs if job["language"] == language]
 
-    return jobs[offset : offset + limit]
+    total = len(jobs)
+
+    return {
+        "items": jobs[offset : offset + limit],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 def get_job_by_id(job_id: int):

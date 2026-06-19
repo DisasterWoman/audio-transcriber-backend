@@ -44,3 +44,10 @@ class Job(BaseModel):
     completed_at: datetime | None
     error_message: str | None
     transcript_text: str | None
+
+
+class JobList(BaseModel):
+    items: list[Job]
+    total: int = Field(ge=0)
+    limit: int = Field(ge=1)
+    offset: int = Field(ge=0)
