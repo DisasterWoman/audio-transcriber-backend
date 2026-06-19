@@ -41,6 +41,11 @@ class JobTranscriptUpdate(AppBaseModel):
     transcript_text: str = Field(min_length=1)
 
 
+class JobTranscript(AppBaseModel):
+    job_id: int
+    transcript_text: str
+
+
 class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None

@@ -44,6 +44,12 @@ class MissingJobTranscript(Exception):
         super().__init__("Cannot mark job as done before transcript is saved")
 
 
+class JobTranscriptNotReady(Exception):
+    def __init__(self, status: JobStatus):
+        self.status = status
+        super().__init__(f"Transcript is not ready when job status is {status.value}")
+
+
 def get_all_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
@@ -74,6 +80,21 @@ def get_all_jobs(
 
 def get_job_by_id(job_id: int):
     return get_job(job_id)
+
+
+def get_job_transcript(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    if job["status"] != JobStatus.done or not job["transcript_text"]:
+        raise JobTranscriptNotReady(job["status"])
+
+    return {
+        "job_id": job["id"],
+        "transcript_text": job["transcript_text"],
+    }
 
 
 def create_job(job_data: JobCreate):

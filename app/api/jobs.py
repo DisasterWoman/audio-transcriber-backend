@@ -7,6 +7,7 @@ from app.schemas.job import (
     Job,
     JobList,
     JobListQuery,
+    JobTranscript,
     JobStatusUpdate,
     JobTranscriptUpdate,
 )
@@ -15,9 +16,11 @@ from app.schemas.language import LanguageCode
 from app.services.job_service import (
     InvalidJobStatusTransition,
     InvalidJobTranscriptUpdate,
+    JobTranscriptNotReady,
     MissingJobTranscript,
     get_all_jobs,
     get_job_by_id,
+    get_job_transcript,
     create_job,
     update_job_status,
     update_job_transcript,
@@ -52,6 +55,19 @@ def get_job(job_id: int):
         raise HTTPException(status_code=404, detail="Job not found")
 
     return job
+
+
+@router.get("/{job_id}/transcript", response_model=JobTranscript)
+def get_transcript(job_id: int):
+    try:
+        transcript = get_job_transcript(job_id)
+    except JobTranscriptNotReady as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+    if transcript is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return transcript
 
 
 @router.post("/", response_model=Job)
