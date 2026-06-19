@@ -16,6 +16,7 @@ class StoredFile:
     filename: str
     original_filename: str
     size_bytes: int
+    content_type: str
 
 
 async def save_uploaded_file(file: UploadFile) -> StoredFile:
@@ -42,6 +43,7 @@ async def save_uploaded_file(file: UploadFile) -> StoredFile:
         filename=stored_filename,
         original_filename=original_filename,
         size_bytes=bytes_written,
+        content_type=file.content_type or "application/octet-stream",
     )
 
 

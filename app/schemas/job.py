@@ -11,6 +11,7 @@ class JobCreate(AppBaseModel):
     filename: str
     original_filename: str
     file_size_bytes: int = Field(ge=0)
+    content_type: str
     language: LanguageCode
 
 
@@ -47,6 +48,7 @@ class Job(AppBaseModel):
     filename: str
     original_filename: str
     file_size_bytes: int
+    content_type: str
     language: LanguageCode
     status: JobStatus
     created_at: datetime

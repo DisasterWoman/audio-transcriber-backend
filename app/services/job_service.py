@@ -84,6 +84,7 @@ def create_job(job_data: JobCreate):
         "filename": job_data.filename,
         "original_filename": job_data.original_filename,
         "file_size_bytes": job_data.file_size_bytes,
+        "content_type": job_data.content_type,
         "language": job_data.language,
         "status": JobStatus.queued,
         "created_at": now,

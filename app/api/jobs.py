@@ -101,6 +101,7 @@ async def upload_audio(
         filename=stored_file.filename,
         original_filename=stored_file.original_filename,
         file_size_bytes=stored_file.size_bytes,
+        content_type=stored_file.content_type,
         language=language,
     )
 
