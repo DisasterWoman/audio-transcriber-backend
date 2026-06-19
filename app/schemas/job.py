@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
+from app.schemas.sorting import JobSortField, SortDirection
 
 
 class JobCreate(BaseModel):
@@ -29,6 +30,15 @@ class JobStatusUpdate(BaseModel):
 
 class JobTranscriptUpdate(BaseModel):
     transcript_text: str = Field(min_length=1)
+
+
+class JobListQuery(BaseModel):
+    status: JobStatus | None = None
+    language: LanguageCode | None = None
+    limit: int = Field(default=50, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
+    sort_by: JobSortField = JobSortField.created_at
+    sort_direction: SortDirection = SortDirection.desc
 
 
 class Job(BaseModel):

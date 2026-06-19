@@ -1,14 +1,16 @@
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from app.schemas.job import (
     JobCreate,
     Job,
     JobList,
+    JobListQuery,
     JobStatusUpdate,
     JobTranscriptUpdate,
 )
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
-from app.schemas.sorting import JobSortField, SortDirection
 from app.services.job_service import (
     InvalidJobStatusTransition,
     InvalidJobTranscriptUpdate,
@@ -26,21 +28,14 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
 @router.get("/", response_model=JobList)
-def get_jobs(
-    status: JobStatus | None = None,
-    language: LanguageCode | None = None,
-    limit: int = Query(default=50, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    sort_by: JobSortField = JobSortField.created_at,
-    sort_direction: SortDirection = SortDirection.desc,
-):
+def get_jobs(query: Annotated[JobListQuery, Query()]):
     return get_all_jobs(
-        status=status,
-        language=language,
-        limit=limit,
-        offset=offset,
-        sort_by=sort_by,
-        sort_direction=sort_direction,
+        status=query.status,
+        language=query.language,
+        limit=query.limit,
+        offset=query.offset,
+        sort_by=query.sort_by,
+        sort_direction=query.sort_direction,
     )
 
 
