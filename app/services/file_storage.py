@@ -19,8 +19,7 @@ class StoredFile:
 
 
 async def save_uploaded_file(file: UploadFile) -> StoredFile:
-    upload_dir = Path(settings.upload_dir)
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    upload_dir = ensure_upload_dir()
 
     original_filename = file.filename or "uploaded_file"
     file_extension = Path(original_filename).suffix.lower()
@@ -44,3 +43,9 @@ async def save_uploaded_file(file: UploadFile) -> StoredFile:
         original_filename=original_filename,
         size_bytes=bytes_written,
     )
+
+
+def ensure_upload_dir() -> Path:
+    upload_dir = Path(settings.upload_dir)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
