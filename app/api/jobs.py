@@ -8,6 +8,7 @@ from app.schemas.job import (
 )
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
+from app.schemas.sorting import JobSortField, SortDirection
 from app.services.job_service import (
     InvalidJobStatusTransition,
     InvalidJobTranscriptUpdate,
@@ -30,12 +31,16 @@ def get_jobs(
     language: LanguageCode | None = None,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    sort_by: JobSortField = JobSortField.created_at,
+    sort_direction: SortDirection = SortDirection.desc,
 ):
     return get_all_jobs(
         status=status,
         language=language,
         limit=limit,
         offset=offset,
+        sort_by=sort_by,
+        sort_direction=sort_direction,
     )
 
 

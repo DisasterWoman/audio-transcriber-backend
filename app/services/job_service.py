@@ -9,6 +9,7 @@ from app.repositories.job_repository import (
 from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
+from app.schemas.sorting import JobSortField, SortDirection
 
 
 ALLOWED_STATUS_TRANSITIONS = {
@@ -48,6 +49,8 @@ def get_all_jobs(
     language: LanguageCode | None = None,
     limit: int = 50,
     offset: int = 0,
+    sort_by: JobSortField = JobSortField.created_at,
+    sort_direction: SortDirection = SortDirection.desc,
 ):
     jobs = list_jobs()
 
@@ -58,6 +61,8 @@ def get_all_jobs(
         jobs = [job for job in jobs if job["language"] == language]
 
     total = len(jobs)
+    reverse = sort_direction == SortDirection.desc
+    jobs = sorted(jobs, key=lambda job: job[sort_by.value], reverse=reverse)
 
     return {
         "items": jobs[offset : offset + limit],
