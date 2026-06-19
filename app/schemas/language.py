@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel
+from app.schemas.base import AppBaseModel
 
 
 class LanguageCode(str, Enum):
@@ -11,6 +11,6 @@ class LanguageCode(str, Enum):
     fr = "fr"
 
 
-class Language(BaseModel):
+class Language(AppBaseModel):
     code: LanguageCode
     name: str

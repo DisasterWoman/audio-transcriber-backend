@@ -1,19 +1,20 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
+from app.schemas.base import AppBaseModel
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
 
-class JobCreate(BaseModel):
+class JobCreate(AppBaseModel):
     filename: str
     original_filename: str
     file_size_bytes: int = Field(ge=0)
     language: LanguageCode
 
 
-class JobStatusUpdate(BaseModel):
+class JobStatusUpdate(AppBaseModel):
     status: JobStatus
     error_message: str | None = Field(default=None, max_length=1000)
 
@@ -28,11 +29,11 @@ class JobStatusUpdate(BaseModel):
         return self
 
 
-class JobTranscriptUpdate(BaseModel):
+class JobTranscriptUpdate(AppBaseModel):
     transcript_text: str = Field(min_length=1)
 
 
-class JobListQuery(BaseModel):
+class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None
     limit: int = Field(default=50, ge=1, le=100)
@@ -41,7 +42,7 @@ class JobListQuery(BaseModel):
     sort_direction: SortDirection = SortDirection.desc
 
 
-class Job(BaseModel):
+class Job(AppBaseModel):
     id: int
     filename: str
     original_filename: str
@@ -56,7 +57,7 @@ class Job(BaseModel):
     transcript_text: str | None
 
 
-class JobList(BaseModel):
+class JobList(AppBaseModel):
     items: list[Job]
     total: int = Field(ge=0)
     limit: int = Field(ge=1)
