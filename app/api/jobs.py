@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from app.schemas.job import (
     JobCreate,
+    JobCreateRequest,
     Job,
     JobList,
     JobListQuery,
@@ -54,12 +55,14 @@ def get_job(job_id: int):
 
 
 @router.post("/", response_model=Job)
-def create_new_job(job: JobCreate):
+def create_new_job(job: JobCreateRequest):
     validate_audio_file(job.original_filename)
     validate_audio_content_type(job.content_type)
     validate_audio_file_size(job.file_size_bytes)
 
-    return create_job(job)
+    job_data = JobCreate(**job.model_dump())
+
+    return create_job(job_data)
 
 
 @router.patch("/{job_id}/status", response_model=Job)

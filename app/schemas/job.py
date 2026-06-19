@@ -15,6 +15,10 @@ class JobCreate(AppBaseModel):
     language: LanguageCode
 
 
+class JobCreateRequest(JobCreate):
+    pass
+
+
 class JobStatusUpdate(AppBaseModel):
     status: JobStatus
     error_message: str | None = Field(default=None, max_length=1000)
