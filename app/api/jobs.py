@@ -27,7 +27,7 @@ from app.services.file_validation import (
     validate_audio_file,
     validate_audio_file_size,
 )
-from app.services.file_storage import save_uploaded_file
+from app.services.file_storage import generate_stored_filename, save_uploaded_file
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -60,7 +60,13 @@ def create_new_job(job: JobCreateRequest):
     validate_audio_content_type(job.content_type)
     validate_audio_file_size(job.file_size_bytes)
 
-    job_data = JobCreate(**job.model_dump())
+    job_data = JobCreate(
+        filename=generate_stored_filename(job.original_filename),
+        original_filename=job.original_filename,
+        file_size_bytes=job.file_size_bytes,
+        content_type=job.content_type,
+        language=job.language,
+    )
 
     return create_job(job_data)
 

@@ -23,8 +23,7 @@ async def save_uploaded_file(file: UploadFile) -> StoredFile:
     upload_dir = ensure_upload_dir()
 
     original_filename = file.filename or "uploaded_file"
-    file_extension = Path(original_filename).suffix.lower()
-    stored_filename = f"{uuid4()}{file_extension}"
+    stored_filename = generate_stored_filename(original_filename)
     file_path = upload_dir / stored_filename
 
     bytes_written = 0
@@ -51,3 +50,8 @@ def ensure_upload_dir() -> Path:
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
     return upload_dir
+
+
+def generate_stored_filename(original_filename: str) -> str:
+    file_extension = Path(original_filename).suffix.lower()
+    return f"{uuid4()}{file_extension}"

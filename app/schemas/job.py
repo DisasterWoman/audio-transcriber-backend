@@ -15,8 +15,11 @@ class JobCreate(AppBaseModel):
     language: LanguageCode
 
 
-class JobCreateRequest(JobCreate):
-    pass
+class JobCreateRequest(AppBaseModel):
+    original_filename: str
+    file_size_bytes: int = Field(ge=0)
+    content_type: str
+    language: LanguageCode
 
 
 class JobStatusUpdate(AppBaseModel):
