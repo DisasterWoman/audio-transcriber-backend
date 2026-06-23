@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import DateTime, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -8,6 +8,13 @@ from app.db.base import Base
 
 class JobModel(Base):
     __tablename__ = "jobs"
+    __table_args__ = (
+        Index("ix_jobs_language", "language"),
+        Index("ix_jobs_created_at", "created_at"),
+        Index("ix_jobs_updated_at", "updated_at"),
+        Index("ix_jobs_file_size_bytes", "file_size_bytes"),
+        Index("ix_jobs_status_language_created_at", "status", "language", "created_at"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
