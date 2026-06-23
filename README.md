@@ -1,37 +1,142 @@
 # Audio Transcriber Backend
 
-Backend service for an audio-to-text web application.
+Backend API for an audio-to-text application.
 
-## Tech stack
+The project is built as a production-minded FastAPI backend: users upload audio,
+the API creates transcription jobs, stores job metadata in PostgreSQL, and exposes
+job status/transcript endpoints for a future web or mobile frontend.
+
+## Tech Stack
 
 - Python 3.13
 - FastAPI
+- Pydantic
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Docker Compose
 
-## Features implemented
+## Project Structure
 
-- Basic FastAPI app setup
-- Health check endpoint
-- Jobs API
-  - `GET /jobs/`
-  - `GET /jobs/{job_id}`
-  - `POST /jobs/`
-- Request validation with Pydantic
-- Response schemas
-- Service layer for job logic
+```text
+app/
+  api/            HTTP routes
+  core/           settings/configuration
+  db/             SQLAlchemy engine/session setup
+  models/         database models
+  repositories/   database access layer
+  schemas/        Pydantic request/response schemas
+  services/       business logic
+alembic/          database migrations
+```
 
-## Project setup
+## Setup
 
-### 1. Create and activate virtual environment
+### 1. Create and activate a virtual environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-2. Install dependencies
+```
+
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
-3. Run the development server
+```
+
+### 3. Create local environment file
+
+```bash
+cp .env.example .env
+```
+
+### 4. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+```
+
+### 5. Apply database migrations
+
+```bash
+.venv/bin/alembic upgrade head
+```
+
+### 6. Run the development server
+
+```bash
 fastapi dev app/main.py
-API docs
+```
+
+## API Docs
 
 After starting the server, open:
 
+```text
 http://127.0.0.1:8000/docs
+```
+
+## Useful Endpoints
+
+```text
+GET  /api/health
+GET  /api/ready
+GET  /api/languages/
+
+GET   /api/jobs/
+GET   /api/jobs/{job_id}
+POST  /api/jobs/
+POST  /api/jobs/upload
+PATCH /api/jobs/{job_id}/status
+PATCH /api/jobs/{job_id}/transcript
+GET   /api/jobs/{job_id}/transcript
+```
+
+## Quick Smoke Test
+
+Create a job:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/jobs/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "original_filename": "interview.mp3",
+    "file_size_bytes": 123,
+    "content_type": "audio/mpeg",
+    "language": "en"
+  }'
+```
+
+List jobs:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10"
+```
+
+Check database rows:
+
+```bash
+docker compose exec postgres psql -U transcriber -d audio_transcriber \
+  -c "SELECT id, original_filename, status FROM jobs;"
+```
+
+## Database Migrations
+
+Create a new migration after changing SQLAlchemy models:
+
+```bash
+.venv/bin/alembic revision --autogenerate -m "describe change"
+```
+
+Apply migrations:
+
+```bash
+.venv/bin/alembic upgrade head
+```
+
+## Notes
+
+- `.env` is local and should not be committed.
+- Uploaded files in `uploads/` are ignored by git.
+- Local database/runtime data should not be committed.
