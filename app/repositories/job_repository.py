@@ -1,9 +1,17 @@
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 
 from app.db.session import SessionLocal, engine
 from app.models.job import JobModel
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
+from app.schemas.sorting import JobSortField, SortDirection
+
+
+JOB_SORT_COLUMNS = {
+    JobSortField.created_at: JobModel.created_at,
+    JobSortField.updated_at: JobModel.updated_at,
+    JobSortField.file_size_bytes: JobModel.file_size_bytes,
+}
 
 
 def init_job_repository() -> None:
@@ -21,10 +29,46 @@ def is_database_ready() -> bool:
     return True
 
 
-def list_jobs():
+def list_jobs(
+    status: JobStatus | None = None,
+    language: LanguageCode | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    sort_by: JobSortField = JobSortField.created_at,
+    sort_direction: SortDirection = SortDirection.desc,
+):
+    filters = []
+
+    if status is not None:
+        filters.append(JobModel.status == status.value)
+
+    if language is not None:
+        filters.append(JobModel.language == language.value)
+
+    sort_column = JOB_SORT_COLUMNS[sort_by]
+
+    if sort_direction == SortDirection.desc:
+        sort_column = sort_column.desc()
+
+    total_statement = select(func.count()).select_from(JobModel).where(*filters)
+    jobs_statement = (
+        select(JobModel)
+        .where(*filters)
+        .order_by(sort_column)
+        .limit(limit)
+        .offset(offset)
+    )
+
     with SessionLocal() as session:
-        jobs = session.scalars(select(JobModel)).all()
-        return [model_to_job(job) for job in jobs]
+        total = session.scalar(total_statement) or 0
+        jobs = session.scalars(jobs_statement).all()
+
+    return {
+        "items": [model_to_job(job) for job in jobs],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 def get_job(job_id: int):

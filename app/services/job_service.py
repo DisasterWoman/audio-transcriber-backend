@@ -58,24 +58,14 @@ def get_all_jobs(
     sort_by: JobSortField = JobSortField.created_at,
     sort_direction: SortDirection = SortDirection.desc,
 ):
-    jobs = list_jobs()
-
-    if status is not None:
-        jobs = [job for job in jobs if job["status"] == status]
-
-    if language is not None:
-        jobs = [job for job in jobs if job["language"] == language]
-
-    total = len(jobs)
-    reverse = sort_direction == SortDirection.desc
-    jobs = sorted(jobs, key=lambda job: job[sort_by.value], reverse=reverse)
-
-    return {
-        "items": jobs[offset : offset + limit],
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-    }
+    return list_jobs(
+        status=status,
+        language=language,
+        limit=limit,
+        offset=offset,
+        sort_by=sort_by,
+        sort_direction=sort_direction,
+    )
 
 
 def get_job_by_id(job_id: int):
