@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     api_prefix: str
     debug: bool
+    log_level: str = "INFO"
 
     upload_dir: str
     database_url: str = (

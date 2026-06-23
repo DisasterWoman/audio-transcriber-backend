@@ -14,6 +14,7 @@ from app.core.exception_handlers import (
     http_exception_handler,
     validation_error_handler,
 )
+from app.core.logging import configure_logging
 from app.core.middleware import RequestIdMiddleware
 from app.core.settings import settings
 from app.repositories.job_repository import init_job_repository
@@ -26,6 +27,8 @@ async def lifespan(app: FastAPI):
     init_job_repository()
     yield
 
+
+configure_logging(settings.log_level)
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 

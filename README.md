@@ -110,6 +110,21 @@ Errors use one response shape:
 Every response also includes an `X-Request-ID` header. If the frontend shows an
 error, that ID can be used later to find the same request in backend logs.
 
+## Request Logs
+
+The API logs each request with method, path, status code, duration, and request ID.
+Example:
+
+```text
+request completed request_id=... method=GET path=/api/health status_code=200 duration_ms=1.23
+```
+
+The log level is configured with:
+
+```env
+LOG_LEVEL=INFO
+```
+
 ## Quick Smoke Test
 
 Create a job:
