@@ -11,5 +11,11 @@ __pycache__/
 # User uploads
 uploads/
 
+# Local database
+data/
+
+# Alembic local artifacts
+*.sqlite
+
 # Mac
 .DS_Store

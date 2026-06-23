@@ -6,12 +6,14 @@ from app.api.routes import router as main_router
 from app.api.jobs import router as jobs_router
 from app.api.languages import router as languages_router
 from app.core.settings import settings
+from app.repositories.job_repository import init_job_repository
 from app.services.file_storage import ensure_upload_dir
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_upload_dir()
+    init_job_repository()
     yield
 
 

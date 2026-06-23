@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: audio-transcriber-postgres
+    environment:
+      POSTGRES_DB: audio_transcriber
+      POSTGRES_USER: transcriber
+      POSTGRES_PASSWORD: transcriber
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcriber -d audio_transcriber"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

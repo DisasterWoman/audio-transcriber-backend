@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     debug: bool
 
     upload_dir: str
+    database_url: str = (
+        "postgresql+psycopg://transcriber:transcriber@localhost:5432/audio_transcriber"
+    )
     max_upload_size_mb: int = 25
 
     cors_allowed_origins: str = "http://localhost:3000,http://localhost:5173"

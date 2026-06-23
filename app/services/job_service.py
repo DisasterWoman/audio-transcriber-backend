@@ -2,9 +2,9 @@ from datetime import UTC, datetime
 
 from app.repositories.job_repository import (
     get_job,
-    get_next_job_id,
     list_jobs,
     save_job,
+    update_job,
 )
 from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
@@ -101,7 +101,6 @@ def create_job(job_data: JobCreate):
     now = datetime.now(UTC)
 
     new_job = {
-        "id": get_next_job_id(),
         "filename": job_data.filename,
         "original_filename": job_data.original_filename,
         "file_size_bytes": job_data.file_size_bytes,
@@ -156,7 +155,7 @@ def update_job_status(
     if status == JobStatus.failed:
         job["error_message"] = error_message
 
-    return job
+    return update_job(job)
 
 
 def update_job_transcript(job_id: int, transcript_text: str):
@@ -171,4 +170,4 @@ def update_job_transcript(job_id: int, transcript_text: str):
     job["transcript_text"] = transcript_text
     job["updated_at"] = datetime.now(UTC)
 
-    return job
+    return update_job(job)
