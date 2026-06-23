@@ -3,8 +3,9 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
+from app.core.errors import AppError
 from app.core.settings import settings
 from app.services.file_validation import validate_audio_file_size
 
@@ -35,7 +36,7 @@ async def save_uploaded_file(file: UploadFile) -> StoredFile:
                 bytes_written += len(chunk)
                 validate_audio_file_size(bytes_written)
                 buffer.write(chunk)
-    except HTTPException:
+    except AppError:
         file_path.unlink(missing_ok=True)
         raise
 

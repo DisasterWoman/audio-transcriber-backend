@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
+from app.core.errors import ServiceUnavailableError
 from app.repositories.job_repository import is_database_ready
 from app.services.file_storage import is_upload_dir_ready
 
@@ -19,15 +20,9 @@ def health_check():
 @router.get("/ready")
 def readiness_check():
     if not is_upload_dir_ready():
-        raise HTTPException(
-            status_code=503,
-            detail="Upload directory is not ready",
-        )
+        raise ServiceUnavailableError("Upload directory is not ready")
 
     if not is_database_ready():
-        raise HTTPException(
-            status_code=503,
-            detail="Database is not ready",
-        )
+        raise ServiceUnavailableError("Database is not ready")
 
     return {"status": "ready"}

@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
+from fastapi import APIRouter, UploadFile, File, Form, Query
+from app.core.errors import NotFoundError
 from app.schemas.job import (
     JobCreate,
     JobCreateRequest,
@@ -14,10 +15,6 @@ from app.schemas.job import (
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.services.job_service import (
-    InvalidJobStatusTransition,
-    InvalidJobTranscriptUpdate,
-    JobTranscriptNotReady,
-    MissingJobTranscript,
     get_all_jobs,
     get_job_by_id,
     get_job_transcript,
@@ -52,20 +49,17 @@ def get_job(job_id: int):
     job = get_job_by_id(job_id)
 
     if job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise NotFoundError("Job not found")
 
     return job
 
 
 @router.get("/{job_id}/transcript", response_model=JobTranscript)
 def get_transcript(job_id: int):
-    try:
-        transcript = get_job_transcript(job_id)
-    except JobTranscriptNotReady as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
+    transcript = get_job_transcript(job_id)
 
     if transcript is None:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise NotFoundError("Job not found")
 
     return transcript
 
@@ -89,30 +83,24 @@ def create_new_job(job: JobCreateRequest):
 
 @router.patch("/{job_id}/status", response_model=Job)
 def update_status(job_id: int, status_update: JobStatusUpdate):
-    try:
-        job = update_job_status(
-            job_id,
-            status_update.status,
-            status_update.error_message,
-        )
-    except (InvalidJobStatusTransition, MissingJobTranscript) as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
+    job = update_job_status(
+        job_id,
+        status_update.status,
+        status_update.error_message,
+    )
 
     if job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise NotFoundError("Job not found")
 
     return job
 
 
 @router.patch("/{job_id}/transcript", response_model=Job)
 def update_transcript(job_id: int, transcript_update: JobTranscriptUpdate):
-    try:
-        job = update_job_transcript(job_id, transcript_update.transcript_text)
-    except InvalidJobTranscriptUpdate as error:
-        raise HTTPException(status_code=409, detail=str(error)) from error
+    job = update_job_transcript(job_id, transcript_update.transcript_text)
 
     if job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise NotFoundError("Job not found")
 
     return job
 

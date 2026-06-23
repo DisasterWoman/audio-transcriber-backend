@@ -21,7 +21,7 @@ job status/transcript endpoints for a future web or mobile frontend.
 ```text
 app/
   api/            HTTP routes
-  core/           settings/configuration
+  core/           settings, errors, middleware
   db/             SQLAlchemy engine/session setup
   models/         database models
   repositories/   database access layer
@@ -92,6 +92,23 @@ PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
 ```
+
+## Error Responses
+
+Errors use one response shape:
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Request validation failed",
+    "request_id": "..."
+  }
+}
+```
+
+Every response also includes an `X-Request-ID` header. If the frontend shows an
+error, that ID can be used later to find the same request in backend logs.
 
 ## Quick Smoke Test
 

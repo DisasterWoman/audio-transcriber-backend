@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from app.core.errors import ConflictError
 from app.repositories.job_repository import (
     get_job,
     list_jobs,
@@ -22,7 +23,7 @@ ALLOWED_STATUS_TRANSITIONS = {
 COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed}
 
 
-class InvalidJobStatusTransition(Exception):
+class InvalidJobStatusTransition(ConflictError):
     def __init__(self, current_status: JobStatus, new_status: JobStatus):
         self.current_status = current_status
         self.new_status = new_status
@@ -31,7 +32,7 @@ class InvalidJobStatusTransition(Exception):
         )
 
 
-class InvalidJobTranscriptUpdate(Exception):
+class InvalidJobTranscriptUpdate(ConflictError):
     def __init__(self, status: JobStatus):
         self.status = status
         super().__init__(
@@ -39,12 +40,12 @@ class InvalidJobTranscriptUpdate(Exception):
         )
 
 
-class MissingJobTranscript(Exception):
+class MissingJobTranscript(ConflictError):
     def __init__(self):
         super().__init__("Cannot mark job as done before transcript is saved")
 
 
-class JobTranscriptNotReady(Exception):
+class JobTranscriptNotReady(ConflictError):
     def __init__(self, status: JobStatus):
         self.status = status
         super().__init__(f"Transcript is not ready when job status is {status.value}")
