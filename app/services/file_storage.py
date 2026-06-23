@@ -59,6 +59,10 @@ def generate_stored_filename(original_filename: str) -> str:
     return f"{uuid4()}{file_extension}"
 
 
+def get_stored_file_path(filename: str) -> Path:
+    return Path(settings.upload_dir) / filename
+
+
 def is_upload_dir_ready() -> bool:
     upload_dir = Path(settings.upload_dir)
     return upload_dir.is_dir() and os.access(upload_dir, os.W_OK)

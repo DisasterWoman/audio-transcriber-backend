@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, UploadFile, File, Form, Query
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Query
 from app.core.errors import NotFoundError
 from app.schemas.job import (
     JobCreate,
@@ -22,6 +22,7 @@ from app.services.job_service import (
     update_job_status,
     update_job_transcript,
 )
+from app.services.job_processing import process_job, start_job_processing
 from app.services.file_validation import (
     validate_audio_content_type,
     validate_audio_file,
@@ -105,8 +106,21 @@ def update_transcript(job_id: int, transcript_update: JobTranscriptUpdate):
     return job
 
 
+@router.post("/{job_id}/process", response_model=Job)
+def process_existing_job(job_id: int, background_tasks: BackgroundTasks):
+    job = start_job_processing(job_id)
+
+    if job is None:
+        raise NotFoundError("Job not found")
+
+    background_tasks.add_task(process_job, job_id)
+
+    return job
+
+
 @router.post("/upload", response_model=Job)
 async def upload_audio(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     language: LanguageCode = Form(LanguageCode.ru),
 ):
@@ -123,4 +137,7 @@ async def upload_audio(
         language=language,
     )
 
-    return create_job(job_data)
+    job = create_job(job_data)
+    background_tasks.add_task(process_job, job["id"])
+
+    return job

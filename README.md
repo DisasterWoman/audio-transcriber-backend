@@ -88,9 +88,27 @@ GET   /api/jobs/
 GET   /api/jobs/{job_id}
 POST  /api/jobs/
 POST  /api/jobs/upload
+POST  /api/jobs/{job_id}/process
 PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
+```
+
+## Transcription Pipeline
+
+Uploads create a job and schedule background processing. The current
+transcription provider is a development stub:
+
+```env
+TRANSCRIPTION_PROVIDER=stub
+STUB_TRANSCRIPT_TEXT=This is a development transcript placeholder.
+```
+
+This lets the backend exercise the full job lifecycle before a real
+speech-to-text provider is connected:
+
+```text
+queued -> processing -> done
 ```
 
 ## Error Responses
@@ -144,6 +162,12 @@ List jobs:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10"
+```
+
+Get transcript:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/transcript"
 ```
 
 Check database rows:
