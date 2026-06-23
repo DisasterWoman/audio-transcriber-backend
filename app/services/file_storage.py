@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -55,3 +56,8 @@ def ensure_upload_dir() -> Path:
 def generate_stored_filename(original_filename: str) -> str:
     file_extension = Path(original_filename).suffix.lower()
     return f"{uuid4()}{file_extension}"
+
+
+def is_upload_dir_ready() -> bool:
+    upload_dir = Path(settings.upload_dir)
+    return upload_dir.is_dir() and os.access(upload_dir, os.W_OK)
