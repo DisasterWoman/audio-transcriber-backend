@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from app.db.session import SessionLocal, engine
 from app.models.job import JobModel
@@ -9,6 +9,16 @@ from app.schemas.language import LanguageCode
 def init_job_repository() -> None:
     with engine.connect():
         pass
+
+
+def is_database_ready() -> bool:
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        return False
+
+    return True
 
 
 def list_jobs():
