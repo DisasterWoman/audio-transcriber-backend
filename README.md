@@ -107,6 +107,7 @@ TRANSCRIPTION_PROVIDER=stub
 ```text
 GET  /api/health
 GET  /api/ready
+GET  /api/upload-constraints
 GET  /api/languages/
 
 GET   /api/jobs/
