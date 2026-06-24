@@ -16,6 +16,7 @@ from app.schemas.job import (
     JobTranscript,
     JobTranscriptUpdate,
 )
+from app.schemas.job_event import JobEventList
 from app.schemas.language import LanguageCode
 from app.services.file_storage import (
     generate_stored_filename,
@@ -37,6 +38,7 @@ from app.services.job_service import (
     create_job,
     delete_job_by_id,
     get_all_jobs,
+    get_events_for_job,
     get_job_by_id,
     get_job_stats,
     get_job_transcript,
@@ -75,6 +77,16 @@ def get_job(job_id: int):
         raise NotFoundError("Job not found")
 
     return job
+
+
+@router.get("/{job_id}/events", response_model=JobEventList)
+def get_job_events(job_id: int):
+    events = get_events_for_job(job_id)
+
+    if events is None:
+        raise NotFoundError("Job not found")
+
+    return events
 
 
 @router.get("/{job_id}/transcript", response_model=JobTranscript)

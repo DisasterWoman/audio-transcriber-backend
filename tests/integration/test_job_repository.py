@@ -4,8 +4,9 @@ import pytest
 from sqlalchemy import delete
 
 from app.db.session import SessionLocal
-from app.models.job import JobModel
-from app.repositories import job_repository
+from app.models.job import JobEventModel, JobModel
+from app.repositories import job_event_repository, job_repository
+from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
@@ -15,6 +16,11 @@ pytestmark = pytest.mark.integration
 
 def cleanup_integration_jobs() -> None:
     with SessionLocal() as session:
+        session.execute(
+            delete(JobEventModel).where(
+                JobEventModel.message.like("integration-%")
+            )
+        )
         session.execute(
             delete(JobModel).where(
                 JobModel.original_filename.like("integration-%")
@@ -120,3 +126,37 @@ def test_repository_counts_jobs_by_status():
     assert counts[JobStatus.done] >= 1
     assert counts[JobStatus.failed] >= 1
     assert counts[JobStatus.processing] >= 0
+
+
+def test_repository_saves_lists_and_cascades_job_events():
+    saved_job = job_repository.save_job(make_job("integration-events.mp3"))
+
+    first_event = job_event_repository.save_job_event(
+        JobEventCreate(
+            job_id=saved_job["id"],
+            event_type=JobEventType.job_created,
+            message="integration-created",
+        )
+    )
+    second_event = job_event_repository.save_job_event(
+        JobEventCreate(
+            job_id=saved_job["id"],
+            event_type=JobEventType.status_changed,
+            message="integration-status-changed",
+        )
+    )
+
+    events = job_event_repository.list_job_events(saved_job["id"])
+
+    assert events["total"] == 2
+    assert [event["id"] for event in events["items"]] == [
+        first_event["id"],
+        second_event["id"],
+    ]
+    assert events["items"][0]["event_type"] == JobEventType.job_created
+
+    job_repository.delete_job(saved_job["id"])
+
+    events_after_delete = job_event_repository.list_job_events(saved_job["id"])
+
+    assert events_after_delete == {"items": [], "total": 0}

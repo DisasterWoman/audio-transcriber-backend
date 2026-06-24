@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from app.core.errors import ConflictError
+from app.repositories.job_event_repository import list_job_events, save_job_event
 from app.repositories.job_repository import (
     delete_job,
     get_job,
@@ -10,6 +11,7 @@ from app.repositories.job_repository import (
     update_job,
 )
 from app.schemas.job import JobCreate
+from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
@@ -107,6 +109,15 @@ def get_job_stats() -> dict:
     }
 
 
+def get_events_for_job(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    return list_job_events(job_id)
+
+
 def delete_job_by_id(job_id: int) -> bool:
     job = get_job_by_id(job_id)
 
@@ -140,7 +151,14 @@ def create_job(job_data: JobCreate):
         "transcript_text": None,
     }
 
-    return save_job(new_job)
+    saved_job = save_job(new_job)
+    record_job_event(
+        saved_job["id"],
+        JobEventType.job_created,
+        "Job was created and queued for transcription",
+    )
+
+    return saved_job
 
 
 def update_job_status(
@@ -180,7 +198,16 @@ def update_job_status(
     if status == JobStatus.failed:
         job["error_message"] = error_message
 
-    return update_job(job)
+    updated_job = update_job(job)
+
+    if updated_job is not None:
+        record_job_event(
+            job_id,
+            JobEventType.status_changed,
+            f"Status changed from {current_status.value} to {status.value}",
+        )
+
+    return updated_job
 
 
 def record_job_processing_attempt(job_id: int):
@@ -192,7 +219,16 @@ def record_job_processing_attempt(job_id: int):
     job["processing_attempts"] += 1
     job["updated_at"] = datetime.now(UTC)
 
-    return update_job(job)
+    updated_job = update_job(job)
+
+    if updated_job is not None:
+        record_job_event(
+            job_id,
+            JobEventType.processing_attempt_started,
+            f"Processing attempt {updated_job['processing_attempts']} started",
+        )
+
+    return updated_job
 
 
 def retry_failed_job(job_id: int):
@@ -213,7 +249,12 @@ def retry_failed_job(job_id: int):
     job["error_message"] = None
     job["transcript_text"] = None
 
-    return update_job(job)
+    updated_job = update_job(job)
+
+    if updated_job is not None:
+        record_job_event(job_id, JobEventType.job_retried, "Job was queued for retry")
+
+    return updated_job
 
 
 def update_job_transcript(job_id: int, transcript_text: str):
@@ -228,4 +269,27 @@ def update_job_transcript(job_id: int, transcript_text: str):
     job["transcript_text"] = transcript_text
     job["updated_at"] = datetime.now(UTC)
 
-    return update_job(job)
+    updated_job = update_job(job)
+
+    if updated_job is not None:
+        record_job_event(
+            job_id,
+            JobEventType.transcript_updated,
+            "Transcript was saved",
+        )
+
+    return updated_job
+
+
+def record_job_event(
+    job_id: int,
+    event_type: JobEventType,
+    message: str | None = None,
+):
+    return save_job_event(
+        JobEventCreate(
+            job_id=job_id,
+            event_type=event_type,
+            message=message,
+        )
+    )

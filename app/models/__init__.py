@@ -1,3 +1,3 @@
-from app.models.job import JobModel
+from app.models.job import JobEventModel, JobModel
 
-__all__ = ["JobModel"]
+__all__ = ["JobEventModel", "JobModel"]

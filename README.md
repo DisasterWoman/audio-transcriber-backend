@@ -114,6 +114,7 @@ GET  /api/languages/
 GET   /api/jobs/
 GET   /api/jobs/stats
 GET   /api/jobs/{job_id}
+GET   /api/jobs/{job_id}/events
 DELETE /api/jobs/{job_id}
 POST  /api/jobs/
 POST  /api/jobs/upload
@@ -210,6 +211,12 @@ List jobs:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10&search=interview&created_from=2026-06-01T00:00:00Z"
+```
+
+Get job event history:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/events"
 ```
 
 Get transcript:

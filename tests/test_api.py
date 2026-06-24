@@ -62,6 +62,40 @@ def test_job_stats_endpoint(monkeypatch):
     }
 
 
+def test_job_events_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_events_for_job",
+        lambda job_id: {
+            "items": [
+                {
+                    "id": 1,
+                    "job_id": job_id,
+                    "event_type": "job_created",
+                    "message": "Job was created and queued for transcription",
+                    "created_at": "2026-06-24T12:00:00Z",
+                }
+            ],
+            "total": 1,
+        },
+    )
+
+    response = client.get("/api/jobs/1/events")
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["event_type"] == "job_created"
+
+
+def test_job_events_endpoint_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_events_for_job", lambda job_id: None)
+
+    response = client.get("/api/jobs/999/events")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_jobs_list_accepts_search_query(monkeypatch):
     calls = []
 
