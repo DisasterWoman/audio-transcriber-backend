@@ -126,6 +126,38 @@ def test_download_transcript_returns_text_file(monkeypatch):
     )
 
 
+def test_download_audio_returns_original_file(monkeypatch, tmp_path):
+    audio_path = tmp_path / "stored.mp3"
+    audio_path.write_bytes(b"fake audio bytes")
+
+    job = make_job(JobStatus.done)
+    job["content_type"] = "audio/mpeg"
+    job["original_filename"] = "interview.mp3"
+
+    monkeypatch.setattr(jobs_api, "get_job_by_id", lambda job_id: job)
+    monkeypatch.setattr(jobs_api, "stored_file_exists", lambda filename: True)
+    monkeypatch.setattr(jobs_api, "get_stored_file_path", lambda filename: audio_path)
+
+    response = client.get("/api/jobs/1/audio/download")
+
+    assert response.status_code == 200
+    assert response.content == b"fake audio bytes"
+    assert response.headers["content-type"] == "audio/mpeg"
+    assert 'filename="interview.mp3"' in response.headers["content-disposition"]
+
+
+def test_download_audio_returns_404_when_file_is_missing(monkeypatch):
+    job = make_job(JobStatus.done)
+
+    monkeypatch.setattr(jobs_api, "get_job_by_id", lambda job_id: job)
+    monkeypatch.setattr(jobs_api, "stored_file_exists", lambda filename: False)
+
+    response = client.get("/api/jobs/1/audio/download")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Stored audio file not found"
+
+
 def test_upload_can_skip_auto_processing(monkeypatch):
     created_job = make_job(JobStatus.queued)
     process_calls = []

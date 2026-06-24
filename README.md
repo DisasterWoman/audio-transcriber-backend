@@ -121,6 +121,7 @@ PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript/download
+GET   /api/jobs/{job_id}/audio/download
 ```
 
 ## Transcription Pipeline
@@ -219,6 +220,12 @@ Download transcript as text:
 
 ```bash
 curl -OJ "http://127.0.0.1:8000/api/jobs/1/transcript/download"
+```
+
+Download original audio:
+
+```bash
+curl -OJ "http://127.0.0.1:8000/api/jobs/1/audio/download"
 ```
 
 Check database rows:

@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 
 from app.core.errors import NotFoundError
 from app.core.settings import settings
@@ -17,7 +17,12 @@ from app.schemas.job import (
     JobTranscriptUpdate,
 )
 from app.schemas.language import LanguageCode
-from app.services.file_storage import generate_stored_filename, save_uploaded_file
+from app.services.file_storage import (
+    generate_stored_filename,
+    get_stored_file_path,
+    save_uploaded_file,
+    stored_file_exists,
+)
 from app.services.file_validation import (
     validate_audio_content_type,
     validate_audio_file,
@@ -97,6 +102,23 @@ def download_transcript(job_id: int):
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
+    )
+
+
+@router.get("/{job_id}/audio/download", response_class=FileResponse)
+def download_audio(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        raise NotFoundError("Job not found")
+
+    if not stored_file_exists(job["filename"]):
+        raise NotFoundError("Stored audio file not found")
+
+    return FileResponse(
+        path=get_stored_file_path(job["filename"]),
+        media_type=job["content_type"],
+        filename=job["original_filename"],
     )
 
 
