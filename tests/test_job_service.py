@@ -6,27 +6,7 @@ from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.services import job_service
-
-
-def make_job(status: JobStatus = JobStatus.queued) -> dict:
-    now = datetime.now(UTC)
-
-    return {
-        "id": 1,
-        "filename": "stored.mp3",
-        "original_filename": "interview.mp3",
-        "file_size_bytes": 123,
-        "content_type": "audio/mpeg",
-        "language": LanguageCode.en,
-        "status": status,
-        "processing_attempts": 0,
-        "created_at": now,
-        "updated_at": now,
-        "started_at": None,
-        "completed_at": None,
-        "error_message": None,
-        "transcript_text": None,
-    }
+from tests.factories import make_job
 
 
 def test_create_job_starts_queued(monkeypatch):

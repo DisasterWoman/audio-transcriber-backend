@@ -210,9 +210,10 @@ Apply migrations:
 
 ## Tests
 
+The test suite currently covers service-level job rules and API response contracts.
+
 Run the test suite:
 
 ```bash
 .venv/bin/pytest
 ```
-

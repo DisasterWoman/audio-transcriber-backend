@@ -1,0 +1,90 @@
+from fastapi.testclient import TestClient
+
+from app.api import jobs as jobs_api
+from app.main import app
+from app.schemas.job_status import JobStatus
+from app.services.file_storage import StoredFile
+from tests.factories import make_job
+
+
+client = TestClient(app)
+
+
+def test_health_response_has_request_id_header():
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    assert response.headers["x-request-id"]
+
+
+def test_not_found_uses_consistent_error_shape(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_job_by_id", lambda job_id: None)
+
+    response = client.get("/api/jobs/999")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"
+    assert response.json()["error"]["message"] == "Job not found"
+    assert response.json()["error"]["request_id"]
+
+
+def test_validation_error_uses_consistent_error_shape():
+    response = client.get("/api/jobs/?limit=0")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+    assert response.json()["error"]["message"] == "Request validation failed"
+    assert response.json()["error"]["details"]
+
+
+def test_upload_can_skip_auto_processing(monkeypatch):
+    created_job = make_job(JobStatus.queued)
+    process_calls = []
+
+    async def fake_save_uploaded_file(file):
+        return StoredFile(
+            filename="stored.mp3",
+            original_filename="interview.mp3",
+            size_bytes=123,
+            content_type="audio/mpeg",
+        )
+
+    def fake_process_job(job_id: int):
+        process_calls.append(job_id)
+
+    monkeypatch.setattr(jobs_api, "save_uploaded_file", fake_save_uploaded_file)
+    monkeypatch.setattr(jobs_api, "create_job", lambda job_data: created_job)
+    monkeypatch.setattr(jobs_api, "process_job", fake_process_job)
+
+    response = client.post(
+        "/api/jobs/upload",
+        files={"file": ("interview.mp3", b"fake audio bytes", "audio/mpeg")},
+        data={"language": "en", "auto_process": "false"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "queued"
+    assert process_calls == []
+
+
+def test_process_endpoint_schedules_background_task(monkeypatch):
+    processing_job = make_job(JobStatus.processing)
+    process_calls = []
+
+    monkeypatch.setattr(
+        jobs_api,
+        "start_job_processing",
+        lambda job_id: processing_job,
+    )
+    monkeypatch.setattr(
+        jobs_api,
+        "process_job",
+        lambda job_id: process_calls.append(job_id),
+    )
+
+    response = client.post("/api/jobs/1/process")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "processing"
+    assert process_calls == [1]
