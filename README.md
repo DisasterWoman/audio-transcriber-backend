@@ -228,3 +228,12 @@ Run the test suite:
 ```bash
 .venv/bin/pytest
 ```
+
+## CI
+
+GitHub Actions runs lint checks and tests on pull requests and pushes to `main`.
+The workflow lives in:
+
+```text
+.github/workflows/ci.yml
+```
