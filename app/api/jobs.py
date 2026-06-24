@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
+from fastapi.responses import PlainTextResponse
 
 from app.core.errors import NotFoundError
 from app.core.settings import settings
@@ -79,6 +80,24 @@ def get_transcript(job_id: int):
         raise NotFoundError("Job not found")
 
     return transcript
+
+
+@router.get("/{job_id}/transcript/download", response_class=PlainTextResponse)
+def download_transcript(job_id: int):
+    transcript = get_job_transcript(job_id)
+
+    if transcript is None:
+        raise NotFoundError("Job not found")
+
+    filename = f"job-{job_id}-transcript.txt"
+
+    return PlainTextResponse(
+        content=transcript["transcript_text"],
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
 
 
 @router.delete("/{job_id}", status_code=204)

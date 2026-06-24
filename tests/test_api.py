@@ -105,6 +105,27 @@ def test_jobs_list_rejects_invalid_created_range():
     assert response.json()["error"]["code"] == "validation_error"
 
 
+def test_download_transcript_returns_text_file(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript",
+        lambda job_id: {
+            "job_id": job_id,
+            "transcript_text": "Hello from transcript",
+        },
+    )
+
+    response = client.get("/api/jobs/1/transcript/download")
+
+    assert response.status_code == 200
+    assert response.text == "Hello from transcript"
+    assert response.headers["content-type"] == "text/plain; charset=utf-8"
+    assert (
+        response.headers["content-disposition"]
+        == 'attachment; filename="job-1-transcript.txt"'
+    )
+
+
 def test_upload_can_skip_auto_processing(monkeypatch):
     created_job = make_job(JobStatus.queued)
     process_calls = []

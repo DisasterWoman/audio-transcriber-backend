@@ -120,6 +120,7 @@ POST  /api/jobs/{job_id}/retry
 PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
+GET   /api/jobs/{job_id}/transcript/download
 ```
 
 ## Transcription Pipeline
@@ -212,6 +213,12 @@ Get transcript:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript"
+```
+
+Download transcript as text:
+
+```bash
+curl -OJ "http://127.0.0.1:8000/api/jobs/1/transcript/download"
 ```
 
 Check database rows:
