@@ -1,4 +1,4 @@
-.PHONY: dev test lint format check migrate
+.PHONY: dev test lint format check migrate ci
 
 dev:
 	.venv/bin/fastapi dev app/main.py
@@ -18,3 +18,8 @@ check:
 
 migrate:
 	.venv/bin/alembic upgrade head
+
+ci:
+	.venv/bin/ruff check .
+	.venv/bin/alembic upgrade head
+	.venv/bin/pytest

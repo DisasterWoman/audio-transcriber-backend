@@ -86,6 +86,7 @@ make lint     # run Ruff lint checks
 make format   # format Python files
 make check    # run lint checks and tests
 make migrate  # apply database migrations
+make ci       # run lint checks, migrations, and tests
 ```
 
 ## Configuration
@@ -262,8 +263,8 @@ Run the test suite:
 
 ## CI
 
-GitHub Actions runs lint checks and tests on pull requests and pushes to `main`.
-The workflow lives in:
+GitHub Actions runs lint checks, Alembic migrations against PostgreSQL, and tests
+on pull requests and pushes to `main`. The workflow lives in:
 
 ```text
 .github/workflows/ci.yml

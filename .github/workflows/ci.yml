@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -9,6 +10,25 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: audio_transcriber
+          POSTGRES_USER: transcriber
+          POSTGRES_PASSWORD: transcriber
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transcriber -d audio_transcriber"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://transcriber:transcriber@localhost:5432/audio_transcriber
+      APP_ENV: test
 
     steps:
       - name: Check out repository
@@ -32,4 +52,4 @@ jobs:
         run: .venv/bin/python -m pip install -r requirements.txt
 
       - name: Run checks
-        run: make check
+        run: make ci
