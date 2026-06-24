@@ -76,7 +76,11 @@ def test_jobs_list_accepts_search_query(monkeypatch):
 
     monkeypatch.setattr(jobs_api, "get_all_jobs", fake_get_all_jobs)
 
-    response = client.get("/api/jobs/?search=interview&language=en&limit=10")
+    response = client.get(
+        "/api/jobs/?search=interview&language=en&limit=10"
+        "&created_from=2026-06-01T00:00:00Z"
+        "&created_to=2026-06-30T23:59:59Z"
+    )
 
     assert response.status_code == 200
     assert response.json() == {
@@ -87,6 +91,18 @@ def test_jobs_list_accepts_search_query(monkeypatch):
     }
     assert calls[0]["search"] == "interview"
     assert calls[0]["language"] == "en"
+    assert calls[0]["created_from"].year == 2026
+    assert calls[0]["created_to"].year == 2026
+
+
+def test_jobs_list_rejects_invalid_created_range():
+    response = client.get(
+        "/api/jobs/?created_from=2026-06-30T00:00:00Z"
+        "&created_to=2026-06-01T00:00:00Z"
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
 
 
 def test_upload_can_skip_auto_processing(monkeypatch):

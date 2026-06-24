@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import func, select, text
 
 from app.db.session import SessionLocal, engine
@@ -32,6 +34,8 @@ def list_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
     search: str | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
     limit: int = 50,
     offset: int = 0,
     sort_by: JobSortField = JobSortField.created_at,
@@ -47,6 +51,12 @@ def list_jobs(
 
     if search is not None:
         filters.append(JobModel.original_filename.ilike(f"%{search}%"))
+
+    if created_from is not None:
+        filters.append(JobModel.created_at >= created_from)
+
+    if created_to is not None:
+        filters.append(JobModel.created_at <= created_to)
 
     sort_column = JOB_SORT_COLUMNS[sort_by]
 

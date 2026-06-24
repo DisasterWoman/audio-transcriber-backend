@@ -1,4 +1,5 @@
 from fastapi import HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -56,7 +57,7 @@ async def validation_error_handler(
         status_code=422,
         code="validation_error",
         message="Request validation failed",
-        details=exc.errors(),
+        details=jsonable_encoder(exc.errors()),
     )
 
 
