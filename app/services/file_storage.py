@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import UploadFile
 
-from app.core.errors import AppError
+from app.core.errors import AppError, FileStorageError
 from app.core.settings import settings
 from app.services.file_validation import validate_audio_file_size
 
@@ -38,6 +38,9 @@ async def save_uploaded_file(file: UploadFile) -> StoredFile:
     except AppError:
         file_path.unlink(missing_ok=True)
         raise
+    except OSError as error:
+        file_path.unlink(missing_ok=True)
+        raise FileStorageError("Could not save uploaded file") from error
 
     return StoredFile(
         filename=stored_filename,

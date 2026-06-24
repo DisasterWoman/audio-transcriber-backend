@@ -22,6 +22,11 @@ class FileTooLargeError(AppError):
     code = "file_too_large"
 
 
+class FileStorageError(AppError):
+    status_code = 500
+    code = "file_storage_error"
+
+
 class NotFoundError(AppError):
     status_code = 404
     code = "not_found"
