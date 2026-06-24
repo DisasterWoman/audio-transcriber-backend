@@ -88,6 +88,20 @@ make check    # run lint checks and tests
 make migrate  # apply database migrations
 ```
 
+## Configuration
+
+Settings are loaded from `.env`. Some values are validated at startup, so invalid
+configuration fails early instead of breaking during a request.
+
+Examples:
+
+```env
+APP_ENV=development
+LOG_LEVEL=INFO
+MAX_UPLOAD_SIZE_MB=25
+TRANSCRIPTION_PROVIDER=stub
+```
+
 ## Useful Endpoints
 
 ```text
