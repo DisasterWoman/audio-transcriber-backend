@@ -2,7 +2,7 @@ import logging
 
 from app.core.errors import ConflictError
 from app.schemas.job_status import JobStatus
-from app.services.file_storage import get_stored_file_path
+from app.services.file_storage import get_stored_file_path, stored_file_exists
 from app.services.job_service import (
     get_job_by_id,
     record_job_processing_attempt,
@@ -18,6 +18,11 @@ logger = logging.getLogger("app.jobs")
 class JobProcessingAlreadyFinished(ConflictError):
     def __init__(self, status: JobStatus):
         super().__init__(f"Cannot process job when status is {status.value}")
+
+
+class StoredAudioFileMissing(FileNotFoundError):
+    def __init__(self, filename: str):
+        super().__init__(f"Stored audio file is missing: {filename}")
 
 
 def start_job_processing(job_id: int):
@@ -55,6 +60,9 @@ def process_job(job_id: int) -> None:
             return
 
         record_job_processing_attempt(job_id)
+
+        if not stored_file_exists(job["filename"]):
+            raise StoredAudioFileMissing(job["filename"])
 
         file_path = get_stored_file_path(job["filename"])
         transcript_text = transcribe_audio(file_path, job["language"])

@@ -62,6 +62,10 @@ def get_stored_file_path(filename: str) -> Path:
     return Path(settings.upload_dir) / filename
 
 
+def stored_file_exists(filename: str) -> bool:
+    return get_stored_file_path(filename).is_file()
+
+
 def is_upload_dir_ready() -> bool:
     upload_dir = Path(settings.upload_dir)
     return upload_dir.is_dir() and os.access(upload_dir, os.W_OK)
