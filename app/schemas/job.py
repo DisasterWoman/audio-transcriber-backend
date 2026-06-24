@@ -78,3 +78,11 @@ class JobList(AppBaseModel):
     total: int = Field(ge=0)
     limit: int = Field(ge=1)
     offset: int = Field(ge=0)
+
+
+class JobStats(AppBaseModel):
+    total: int = Field(ge=0)
+    queued: int = Field(ge=0)
+    processing: int = Field(ge=0)
+    done: int = Field(ge=0)
+    failed: int = Field(ge=0)

@@ -70,6 +70,20 @@ def list_jobs(
     }
 
 
+def get_job_status_counts() -> dict[JobStatus, int]:
+    statement = select(JobModel.status, func.count()).group_by(JobModel.status)
+
+    with SessionLocal() as session:
+        rows = session.execute(statement).all()
+
+    counts = {status: 0 for status in JobStatus}
+
+    for status, count in rows:
+        counts[JobStatus(status)] = count
+
+    return counts
+
+
 def get_job(job_id: int):
     with SessionLocal() as session:
         job = session.get(JobModel, job_id)

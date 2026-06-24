@@ -110,6 +110,7 @@ GET  /api/ready
 GET  /api/languages/
 
 GET   /api/jobs/
+GET   /api/jobs/stats
 GET   /api/jobs/{job_id}
 DELETE /api/jobs/{job_id}
 POST  /api/jobs/

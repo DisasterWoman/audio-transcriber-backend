@@ -10,6 +10,7 @@ from app.schemas.job import (
     JobCreateRequest,
     JobList,
     JobListQuery,
+    JobStats,
     JobStatusUpdate,
     JobTranscript,
     JobTranscriptUpdate,
@@ -31,6 +32,7 @@ from app.services.job_service import (
     delete_job_by_id,
     get_all_jobs,
     get_job_by_id,
+    get_job_stats,
     get_job_transcript,
     update_job_status,
     update_job_transcript,
@@ -49,6 +51,11 @@ def get_jobs(query: Annotated[JobListQuery, Query()]):
         sort_by=query.sort_by,
         sort_direction=query.sort_direction,
     )
+
+
+@router.get("/stats", response_model=JobStats)
+def get_jobs_stats():
+    return get_job_stats()
 
 
 @router.get("/{job_id}", response_model=Job)

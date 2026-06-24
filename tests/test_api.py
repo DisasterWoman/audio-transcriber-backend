@@ -37,6 +37,31 @@ def test_validation_error_uses_consistent_error_shape():
     assert response.json()["error"]["details"]
 
 
+def test_job_stats_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_stats",
+        lambda: {
+            "total": 4,
+            "queued": 1,
+            "processing": 1,
+            "done": 1,
+            "failed": 1,
+        },
+    )
+
+    response = client.get("/api/jobs/stats")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "total": 4,
+        "queued": 1,
+        "processing": 1,
+        "done": 1,
+        "failed": 1,
+    }
+
+
 def test_upload_can_skip_auto_processing(monkeypatch):
     created_job = make_job(JobStatus.queued)
     process_calls = []

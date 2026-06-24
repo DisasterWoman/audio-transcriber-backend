@@ -4,6 +4,7 @@ from app.core.errors import ConflictError
 from app.repositories.job_repository import (
     delete_job,
     get_job,
+    get_job_status_counts,
     list_jobs,
     save_job,
     update_job,
@@ -85,6 +86,18 @@ def get_job_transcript(job_id: int):
     return {
         "job_id": job["id"],
         "transcript_text": job["transcript_text"],
+    }
+
+
+def get_job_stats() -> dict:
+    counts = get_job_status_counts()
+
+    return {
+        "total": sum(counts.values()),
+        "queued": counts[JobStatus.queued],
+        "processing": counts[JobStatus.processing],
+        "done": counts[JobStatus.done],
+        "failed": counts[JobStatus.failed],
     }
 
 
