@@ -5,6 +5,8 @@ from app.schemas.job_status import JobStatus
 from app.services.file_storage import get_stored_file_path
 from app.services.job_service import (
     get_job_by_id,
+    record_job_processing_attempt,
+    retry_failed_job,
     update_job_status,
     update_job_transcript,
 )
@@ -53,6 +55,8 @@ def process_job(job_id: int) -> None:
             )
             return
 
+        record_job_processing_attempt(job_id)
+
         file_path = get_stored_file_path(job["filename"])
         transcript_text = transcribe_audio(file_path, job["language"])
 
@@ -72,3 +76,12 @@ def fail_job_if_possible(job_id: int, error_message: str) -> None:
         return
 
     update_job_status(job_id, JobStatus.failed, error_message)
+
+
+def retry_job_processing(job_id: int):
+    job = retry_failed_job(job_id)
+
+    if job is None:
+        return None
+
+    return start_job_processing(job_id)

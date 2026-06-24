@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Query
 from app.core.errors import NotFoundError
+from app.core.settings import settings
 from app.schemas.job import (
     JobCreate,
     JobCreateRequest,
@@ -22,7 +23,11 @@ from app.services.job_service import (
     update_job_status,
     update_job_transcript,
 )
-from app.services.job_processing import process_job, start_job_processing
+from app.services.job_processing import (
+    process_job,
+    retry_job_processing,
+    start_job_processing,
+)
 from app.services.file_validation import (
     validate_audio_content_type,
     validate_audio_file,
@@ -118,11 +123,24 @@ def process_existing_job(job_id: int, background_tasks: BackgroundTasks):
     return job
 
 
+@router.post("/{job_id}/retry", response_model=Job)
+def retry_job(job_id: int, background_tasks: BackgroundTasks):
+    job = retry_job_processing(job_id)
+
+    if job is None:
+        raise NotFoundError("Job not found")
+
+    background_tasks.add_task(process_job, job_id)
+
+    return job
+
+
 @router.post("/upload", response_model=Job)
 async def upload_audio(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     language: LanguageCode = Form(LanguageCode.ru),
+    auto_process: bool | None = Form(None),
 ):
     validate_audio_file(file.filename)
     validate_audio_content_type(file.content_type)
@@ -138,6 +156,13 @@ async def upload_audio(
     )
 
     job = create_job(job_data)
-    background_tasks.add_task(process_job, job["id"])
+
+    should_process = settings.auto_process_uploads
+
+    if auto_process is not None:
+        should_process = auto_process
+
+    if should_process:
+        background_tasks.add_task(process_job, job["id"])
 
     return job

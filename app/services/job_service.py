@@ -98,6 +98,7 @@ def create_job(job_data: JobCreate):
         "content_type": job_data.content_type,
         "language": job_data.language,
         "status": JobStatus.queued,
+        "processing_attempts": 0,
         "created_at": now,
         "updated_at": now,
         "started_at": None,
@@ -145,6 +146,39 @@ def update_job_status(
 
     if status == JobStatus.failed:
         job["error_message"] = error_message
+
+    return update_job(job)
+
+
+def record_job_processing_attempt(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    job["processing_attempts"] += 1
+    job["updated_at"] = datetime.now(UTC)
+
+    return update_job(job)
+
+
+def retry_failed_job(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    if job["status"] != JobStatus.failed:
+        raise InvalidJobStatusTransition(job["status"], JobStatus.queued)
+
+    now = datetime.now(UTC)
+
+    job["status"] = JobStatus.queued
+    job["updated_at"] = now
+    job["started_at"] = None
+    job["completed_at"] = None
+    job["error_message"] = None
+    job["transcript_text"] = None
 
     return update_job(job)
 

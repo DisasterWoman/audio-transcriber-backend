@@ -89,6 +89,7 @@ GET   /api/jobs/{job_id}
 POST  /api/jobs/
 POST  /api/jobs/upload
 POST  /api/jobs/{job_id}/process
+POST  /api/jobs/{job_id}/retry
 PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
@@ -100,6 +101,7 @@ Uploads create a job and schedule background processing. The current
 transcription provider is a development stub:
 
 ```env
+AUTO_PROCESS_UPLOADS=true
 TRANSCRIPTION_PROVIDER=stub
 STUB_TRANSCRIPT_TEXT=This is a development transcript placeholder.
 ```
@@ -109,6 +111,21 @@ speech-to-text provider is connected:
 
 ```text
 queued -> processing -> done
+```
+
+If processing fails, the job becomes `failed` and can be retried:
+
+```text
+failed -> queued -> processing -> done
+```
+
+Each processing run increments `processing_attempts`. This makes failures easier
+to debug later because the API can show whether a job failed once or many times.
+
+You can disable automatic processing per upload by sending:
+
+```text
+auto_process=false
 ```
 
 ## Error Responses
@@ -191,8 +208,4 @@ Apply migrations:
 .venv/bin/alembic upgrade head
 ```
 
-## Notes
 
-- `.env` is local and should not be committed.
-- Uploaded files in `uploads/` are ignored by git.
-- Local database/runtime data should not be committed.

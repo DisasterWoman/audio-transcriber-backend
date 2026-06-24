@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         "postgresql+psycopg://transcriber:transcriber@localhost:5432/audio_transcriber"
     )
     max_upload_size_mb: int = 25
+    auto_process_uploads: bool = True
     transcription_provider: str = "stub"
     stub_transcript_text: str = "This is a development transcript placeholder."
 

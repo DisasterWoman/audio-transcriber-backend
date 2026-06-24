@@ -63,6 +63,7 @@ class Job(AppBaseModel):
     content_type: str
     language: LanguageCode
     status: JobStatus
+    processing_attempts: int = Field(ge=0)
     created_at: datetime
     updated_at: datetime
     started_at: datetime | None
