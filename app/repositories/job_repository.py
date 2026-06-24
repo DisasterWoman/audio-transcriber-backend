@@ -6,7 +6,6 @@ from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
-
 JOB_SORT_COLUMNS = {
     JobSortField.created_at: JobModel.created_at,
     JobSortField.updated_at: JobModel.updated_at,

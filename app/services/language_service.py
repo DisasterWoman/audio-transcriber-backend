@@ -1,6 +1,5 @@
 from app.schemas.language import LanguageCode
 
-
 LANGUAGE_NAMES = {
     LanguageCode.ru: "Russian",
     LanguageCode.en: "English",

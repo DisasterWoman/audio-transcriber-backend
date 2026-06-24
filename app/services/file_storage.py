@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
@@ -8,7 +8,6 @@ from fastapi import UploadFile
 from app.core.errors import AppError
 from app.core.settings import settings
 from app.services.file_validation import validate_audio_file_size
-
 
 CHUNK_SIZE_BYTES = 1024 * 1024
 

@@ -23,7 +23,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     allowed_audio_extensions: str
-    allowed_audio_mime_types: str = "audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/webm"
+    allowed_audio_mime_types: str = (
+        "audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/webm"
+    )
 
     @property
     def cors_origins(self) -> list[str]:

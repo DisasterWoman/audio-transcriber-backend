@@ -1,39 +1,39 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Query
+from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
+
 from app.core.errors import NotFoundError
 from app.core.settings import settings
 from app.schemas.job import (
+    Job,
     JobCreate,
     JobCreateRequest,
-    Job,
     JobList,
     JobListQuery,
-    JobTranscript,
     JobStatusUpdate,
+    JobTranscript,
     JobTranscriptUpdate,
 )
-from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
-from app.services.job_service import (
-    get_all_jobs,
-    get_job_by_id,
-    get_job_transcript,
-    create_job,
-    update_job_status,
-    update_job_transcript,
+from app.services.file_storage import generate_stored_filename, save_uploaded_file
+from app.services.file_validation import (
+    validate_audio_content_type,
+    validate_audio_file,
+    validate_audio_file_size,
 )
 from app.services.job_processing import (
     process_job,
     retry_job_processing,
     start_job_processing,
 )
-from app.services.file_validation import (
-    validate_audio_content_type,
-    validate_audio_file,
-    validate_audio_file_size,
+from app.services.job_service import (
+    create_job,
+    get_all_jobs,
+    get_job_by_id,
+    get_job_transcript,
+    update_job_status,
+    update_job_transcript,
 )
-from app.services.file_storage import generate_stored_filename, save_uploaded_file
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 

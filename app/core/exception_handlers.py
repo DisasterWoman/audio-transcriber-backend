@@ -60,7 +60,9 @@ async def validation_error_handler(
     )
 
 
-async def database_error_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+async def database_error_handler(
+    request: Request, exc: SQLAlchemyError
+) -> JSONResponse:
     return error_response(
         request=request,
         status_code=503,

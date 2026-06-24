@@ -6,7 +6,6 @@ from app.schemas.job_status import JobStatus
 from app.services.file_storage import StoredFile
 from tests.factories import make_job
 
-
 client = TestClient(app)
 
 

@@ -77,6 +77,17 @@ After starting the server, open:
 http://127.0.0.1:8000/docs
 ```
 
+## Dev Commands
+
+```bash
+make dev      # run FastAPI locally
+make test     # run tests
+make lint     # run Ruff lint checks
+make format   # format Python files
+make check    # run lint checks and tests
+make migrate  # apply database migrations
+```
+
 ## Useful Endpoints
 
 ```text

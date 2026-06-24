@@ -12,7 +12,6 @@ from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
-
 ALLOWED_STATUS_TRANSITIONS = {
     JobStatus.queued: {JobStatus.processing, JobStatus.failed},
     JobStatus.processing: {JobStatus.done, JobStatus.failed},
@@ -28,16 +27,15 @@ class InvalidJobStatusTransition(ConflictError):
         self.current_status = current_status
         self.new_status = new_status
         super().__init__(
-            f"Cannot change job status from {current_status.value} to {new_status.value}"
+            "Cannot change job status from "
+            f"{current_status.value} to {new_status.value}"
         )
 
 
 class InvalidJobTranscriptUpdate(ConflictError):
     def __init__(self, status: JobStatus):
         self.status = status
-        super().__init__(
-            f"Cannot update transcript when job status is {status.value}"
-        )
+        super().__init__(f"Cannot update transcript when job status is {status.value}")
 
 
 class MissingJobTranscript(ConflictError):

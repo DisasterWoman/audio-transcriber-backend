@@ -12,7 +12,6 @@ from app.services.job_service import (
 )
 from app.services.transcription_service import transcribe_audio
 
-
 logger = logging.getLogger("app.jobs")
 
 

@@ -4,9 +4,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
-from app.api.routes import router as main_router
+
 from app.api.jobs import router as jobs_router
 from app.api.languages import router as languages_router
+from app.api.routes import router as main_router
 from app.core.errors import AppError
 from app.core.exception_handlers import (
     app_error_handler,

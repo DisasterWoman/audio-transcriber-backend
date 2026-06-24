@@ -7,7 +7,6 @@ Create Date: 2026-06-23
 
 from alembic import op
 
-
 revision = "20260623_0002"
 down_revision = "20260623_0001"
 branch_labels = None
@@ -18,7 +17,9 @@ def upgrade() -> None:
     op.create_index("ix_jobs_language", "jobs", ["language"], unique=False)
     op.create_index("ix_jobs_created_at", "jobs", ["created_at"], unique=False)
     op.create_index("ix_jobs_updated_at", "jobs", ["updated_at"], unique=False)
-    op.create_index("ix_jobs_file_size_bytes", "jobs", ["file_size_bytes"], unique=False)
+    op.create_index(
+        "ix_jobs_file_size_bytes", "jobs", ["file_size_bytes"], unique=False
+    )
     op.create_index(
         "ix_jobs_status_language_created_at",
         "jobs",

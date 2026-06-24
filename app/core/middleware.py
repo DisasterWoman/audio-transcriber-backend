@@ -5,7 +5,6 @@ from uuid import uuid4
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-
 REQUEST_ID_HEADER = "X-Request-ID"
 request_logger = logging.getLogger("app.requests")
 
@@ -33,7 +32,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         response.headers[REQUEST_ID_HEADER] = request_id
 
         request_logger.info(
-            "request completed request_id=%s method=%s path=%s status_code=%s duration_ms=%s",
+            "request completed request_id=%s method=%s path=%s "
+            "status_code=%s duration_ms=%s",
             request_id,
             request.method,
             request.url.path,
