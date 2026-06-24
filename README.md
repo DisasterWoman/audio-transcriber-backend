@@ -208,4 +208,11 @@ Apply migrations:
 .venv/bin/alembic upgrade head
 ```
 
+## Tests
+
+Run the test suite:
+
+```bash
+.venv/bin/pytest
+```
 
