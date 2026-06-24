@@ -5,14 +5,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str
+    app_name: str = "Audio Transcriber Backend"
     app_env: Literal["development", "test", "production"] = "development"
 
-    api_prefix: str
-    debug: bool
+    api_prefix: str = "/api"
+    debug: bool = False
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
-    upload_dir: str
+    upload_dir: str = "uploads"
     database_url: str = (
         "postgresql+psycopg://transcriber:transcriber@localhost:5432/audio_transcriber"
     )
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    allowed_audio_extensions: str
+    allowed_audio_extensions: str = "mp3,wav,m4a,webm"
     allowed_audio_mime_types: str = (
         "audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/webm"
     )

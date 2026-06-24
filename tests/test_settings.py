@@ -26,6 +26,15 @@ def test_settings_accept_valid_values():
     assert settings.transcription_provider == "stub"
 
 
+def test_settings_can_load_without_env_file():
+    settings = Settings(_env_file=None)
+
+    assert settings.app_name == "Audio Transcriber Backend"
+    assert settings.api_prefix == "/api"
+    assert settings.upload_dir == "uploads"
+    assert settings.allowed_audio_extension_set == {"m4a", "mp3", "wav", "webm"}
+
+
 def test_settings_reject_invalid_environment():
     with pytest.raises(ValidationError):
         make_settings(app_env="staging")
