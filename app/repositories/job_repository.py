@@ -104,6 +104,19 @@ def update_job(job: dict):
         return model_to_job(job_model)
 
 
+def delete_job(job_id: int) -> bool:
+    with SessionLocal() as session:
+        job_model = session.get(JobModel, job_id)
+
+        if job_model is None:
+            return False
+
+        session.delete(job_model)
+        session.commit()
+
+    return True
+
+
 def job_to_model_values(job: dict) -> dict:
     return {
         "filename": job["filename"],

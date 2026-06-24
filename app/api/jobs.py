@@ -28,6 +28,7 @@ from app.services.job_processing import (
 )
 from app.services.job_service import (
     create_job,
+    delete_job_by_id,
     get_all_jobs,
     get_job_by_id,
     get_job_transcript,
@@ -68,6 +69,16 @@ def get_transcript(job_id: int):
         raise NotFoundError("Job not found")
 
     return transcript
+
+
+@router.delete("/{job_id}", status_code=204)
+def delete_existing_job(job_id: int):
+    deleted = delete_job_by_id(job_id)
+
+    if not deleted:
+        raise NotFoundError("Job not found")
+
+    return None
 
 
 @router.post("/", response_model=Job)

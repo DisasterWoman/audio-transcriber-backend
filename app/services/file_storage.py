@@ -69,6 +69,10 @@ def stored_file_exists(filename: str) -> bool:
     return get_stored_file_path(filename).is_file()
 
 
+def delete_stored_file(filename: str) -> None:
+    get_stored_file_path(filename).unlink(missing_ok=True)
+
+
 def is_upload_dir_ready() -> bool:
     upload_dir = Path(settings.upload_dir)
     return upload_dir.is_dir() and os.access(upload_dir, os.W_OK)

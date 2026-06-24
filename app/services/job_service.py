@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from app.core.errors import ConflictError
 from app.repositories.job_repository import (
+    delete_job,
     get_job,
     list_jobs,
     save_job,
@@ -11,6 +12,7 @@ from app.schemas.job import JobCreate
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
+from app.services.file_storage import delete_stored_file
 
 ALLOWED_STATUS_TRANSITIONS = {
     JobStatus.queued: {JobStatus.processing, JobStatus.failed},
@@ -84,6 +86,20 @@ def get_job_transcript(job_id: int):
         "job_id": job["id"],
         "transcript_text": job["transcript_text"],
     }
+
+
+def delete_job_by_id(job_id: int) -> bool:
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return False
+
+    deleted = delete_job(job_id)
+
+    if deleted:
+        delete_stored_file(job["filename"])
+
+    return deleted
 
 
 def create_job(job_data: JobCreate):

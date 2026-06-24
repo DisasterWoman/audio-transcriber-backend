@@ -87,3 +87,12 @@ def test_process_endpoint_schedules_background_task(monkeypatch):
     assert response.status_code == 200
     assert response.json()["status"] == "processing"
     assert process_calls == [1]
+
+
+def test_delete_job_returns_no_content(monkeypatch):
+    monkeypatch.setattr(jobs_api, "delete_job_by_id", lambda job_id: True)
+
+    response = client.delete("/api/jobs/1")
+
+    assert response.status_code == 204
+    assert response.content == b""

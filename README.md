@@ -111,6 +111,7 @@ GET  /api/languages/
 
 GET   /api/jobs/
 GET   /api/jobs/{job_id}
+DELETE /api/jobs/{job_id}
 POST  /api/jobs/
 POST  /api/jobs/upload
 POST  /api/jobs/{job_id}/process
