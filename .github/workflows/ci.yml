@@ -23,6 +23,11 @@ jobs:
       - name: Create virtual environment
         run: python -m venv .venv
 
+      - name: Show Python environment
+        run: |
+          .venv/bin/python --version
+          .venv/bin/python -m pip --version
+
       - name: Install dependencies
         run: .venv/bin/python -m pip install -r requirements.txt
 
