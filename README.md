@@ -84,9 +84,9 @@ make dev      # run FastAPI locally
 make test     # run tests
 make lint     # run Ruff lint checks
 make format   # format Python files
-make check    # run lint checks and tests
+make check    # run lint checks and fast tests
 make migrate  # apply database migrations
-make ci       # run lint checks, migrations, and tests
+make ci       # run lint checks, migrations, fast tests, and integration tests
 ```
 
 ## Configuration
@@ -253,12 +253,19 @@ Apply migrations:
 
 ## Tests
 
-The test suite currently covers service-level job rules and API response contracts.
+The test suite currently covers service-level job rules, API response contracts,
+and PostgreSQL-backed repository behavior.
 
-Run the test suite:
+Run fast tests:
 
 ```bash
 .venv/bin/pytest
+```
+
+Run the full CI-style suite:
+
+```bash
+make ci
 ```
 
 ## CI

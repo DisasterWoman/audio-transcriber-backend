@@ -4,7 +4,7 @@ dev:
 	.venv/bin/fastapi dev app/main.py
 
 test:
-	.venv/bin/pytest
+	.venv/bin/pytest -m "not integration"
 
 lint:
 	.venv/bin/ruff check .
@@ -14,7 +14,7 @@ format:
 
 check:
 	.venv/bin/ruff check .
-	.venv/bin/pytest
+	.venv/bin/pytest -m "not integration"
 
 migrate:
 	.venv/bin/alembic upgrade head
