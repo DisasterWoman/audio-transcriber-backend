@@ -46,6 +46,7 @@ def get_jobs(query: Annotated[JobListQuery, Query()]):
     return get_all_jobs(
         status=query.status,
         language=query.language,
+        search=query.search,
         limit=query.limit,
         offset=query.offset,
         sort_by=query.sort_by,

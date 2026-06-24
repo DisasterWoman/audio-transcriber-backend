@@ -50,6 +50,7 @@ class JobTranscript(AppBaseModel):
 class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None
+    search: str | None = Field(default=None, min_length=1, max_length=100)
     limit: int = Field(default=50, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
     sort_by: JobSortField = JobSortField.created_at

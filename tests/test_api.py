@@ -62,6 +62,33 @@ def test_job_stats_endpoint(monkeypatch):
     }
 
 
+def test_jobs_list_accepts_search_query(monkeypatch):
+    calls = []
+
+    def fake_get_all_jobs(**kwargs):
+        calls.append(kwargs)
+        return {
+            "items": [],
+            "total": 0,
+            "limit": kwargs["limit"],
+            "offset": kwargs["offset"],
+        }
+
+    monkeypatch.setattr(jobs_api, "get_all_jobs", fake_get_all_jobs)
+
+    response = client.get("/api/jobs/?search=interview&language=en&limit=10")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [],
+        "total": 0,
+        "limit": 10,
+        "offset": 0,
+    }
+    assert calls[0]["search"] == "interview"
+    assert calls[0]["language"] == "en"
+
+
 def test_upload_can_skip_auto_processing(monkeypatch):
     created_job = make_job(JobStatus.queued)
     process_calls = []

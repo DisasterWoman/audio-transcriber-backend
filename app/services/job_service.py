@@ -55,6 +55,7 @@ class JobTranscriptNotReady(ConflictError):
 def get_all_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    search: str | None = None,
     limit: int = 50,
     offset: int = 0,
     sort_by: JobSortField = JobSortField.created_at,
@@ -63,6 +64,7 @@ def get_all_jobs(
     return list_jobs(
         status=status,
         language=language,
+        search=search,
         limit=limit,
         offset=offset,
         sort_by=sort_by,

@@ -31,6 +31,7 @@ def is_database_ready() -> bool:
 def list_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    search: str | None = None,
     limit: int = 50,
     offset: int = 0,
     sort_by: JobSortField = JobSortField.created_at,
@@ -43,6 +44,9 @@ def list_jobs(
 
     if language is not None:
         filters.append(JobModel.language == language.value)
+
+    if search is not None:
+        filters.append(JobModel.original_filename.ilike(f"%{search}%"))
 
     sort_column = JOB_SORT_COLUMNS[sort_by]
 

@@ -205,7 +205,7 @@ curl -X POST http://127.0.0.1:8000/api/jobs/ \
 List jobs:
 
 ```bash
-curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10"
+curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10&search=interview"
 ```
 
 Get transcript:
