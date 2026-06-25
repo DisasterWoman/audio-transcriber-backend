@@ -109,13 +109,25 @@ def get_job_stats() -> dict:
     }
 
 
-def get_events_for_job(job_id: int):
+def get_events_for_job(
+    job_id: int,
+    event_type: JobEventType | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    sort_direction: SortDirection = SortDirection.asc,
+):
     job = get_job_by_id(job_id)
 
     if job is None:
         return None
 
-    return list_job_events(job_id)
+    return list_job_events(
+        job_id,
+        event_type=event_type,
+        limit=limit,
+        offset=offset,
+        sort_direction=sort_direction,
+    )
 
 
 def delete_job_by_id(job_id: int) -> bool:

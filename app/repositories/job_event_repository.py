@@ -1,10 +1,11 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.db.session import SessionLocal
 from app.models.job import JobEventModel
 from app.schemas.job_event import JobEventCreate, JobEventType
+from app.schemas.sorting import SortDirection
 
 
 def save_job_event(event: JobEventCreate) -> dict:
@@ -21,19 +22,41 @@ def save_job_event(event: JobEventCreate) -> dict:
         return model_to_job_event(event_model)
 
 
-def list_job_events(job_id: int) -> dict:
-    statement = (
+def list_job_events(
+    job_id: int,
+    event_type: JobEventType | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    sort_direction: SortDirection = SortDirection.asc,
+) -> dict:
+    filters = [JobEventModel.job_id == job_id]
+
+    if event_type is not None:
+        filters.append(JobEventModel.event_type == event_type.value)
+
+    sort_columns = [JobEventModel.created_at, JobEventModel.id]
+
+    if sort_direction == SortDirection.desc:
+        sort_columns = [column.desc() for column in sort_columns]
+
+    total_statement = select(func.count()).select_from(JobEventModel).where(*filters)
+    events_statement = (
         select(JobEventModel)
-        .where(JobEventModel.job_id == job_id)
-        .order_by(JobEventModel.created_at.asc(), JobEventModel.id.asc())
+        .where(*filters)
+        .order_by(*sort_columns)
+        .limit(limit)
+        .offset(offset)
     )
 
     with SessionLocal() as session:
-        events = session.scalars(statement).all()
+        total = session.scalar(total_statement) or 0
+        events = session.scalars(events_statement).all()
 
     return {
         "items": [model_to_job_event(event) for event in events],
-        "total": len(events),
+        "total": total,
+        "limit": limit,
+        "offset": offset,
     }
 
 

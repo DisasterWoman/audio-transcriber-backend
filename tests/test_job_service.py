@@ -164,14 +164,30 @@ def test_get_events_for_job_returns_none_when_job_does_not_exist(monkeypatch):
 
 def test_get_events_for_job_returns_job_events(monkeypatch):
     stored_job = make_job(JobStatus.queued)
+    calls = []
 
     monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
     monkeypatch.setattr(
         job_service,
         "list_job_events",
-        lambda job_id: {"items": [], "total": 0},
+        lambda job_id, **kwargs: calls.append({"job_id": job_id, **kwargs})
+        or {"items": [], "total": 0, "limit": kwargs["limit"], "offset": 5},
     )
 
-    events = job_service.get_events_for_job(1)
+    events = job_service.get_events_for_job(
+        1,
+        event_type=JobEventType.status_changed,
+        limit=10,
+        offset=5,
+    )
 
-    assert events == {"items": [], "total": 0}
+    assert events == {"items": [], "total": 0, "limit": 10, "offset": 5}
+    assert calls == [
+        {
+            "job_id": 1,
+            "event_type": JobEventType.status_changed,
+            "limit": 10,
+            "offset": 5,
+            "sort_direction": job_service.SortDirection.asc,
+        }
+    ]

@@ -4,6 +4,7 @@ from enum import Enum
 from pydantic import Field
 
 from app.schemas.base import AppBaseModel
+from app.schemas.sorting import SortDirection
 
 
 class JobEventType(str, Enum):
@@ -28,6 +29,15 @@ class JobEvent(AppBaseModel):
     created_at: datetime
 
 
+class JobEventListQuery(AppBaseModel):
+    event_type: JobEventType | None = None
+    limit: int = Field(default=50, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
+    sort_direction: SortDirection = SortDirection.asc
+
+
 class JobEventList(AppBaseModel):
     items: list[JobEvent]
     total: int = Field(ge=0)
+    limit: int = Field(ge=1)
+    offset: int = Field(ge=0)

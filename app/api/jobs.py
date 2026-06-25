@@ -16,7 +16,7 @@ from app.schemas.job import (
     JobTranscript,
     JobTranscriptUpdate,
 )
-from app.schemas.job_event import JobEventList
+from app.schemas.job_event import JobEventList, JobEventListQuery
 from app.schemas.language import LanguageCode
 from app.services.file_storage import (
     generate_stored_filename,
@@ -80,8 +80,14 @@ def get_job(job_id: int):
 
 
 @router.get("/{job_id}/events", response_model=JobEventList)
-def get_job_events(job_id: int):
-    events = get_events_for_job(job_id)
+def get_job_events(job_id: int, query: Annotated[JobEventListQuery, Query()]):
+    events = get_events_for_job(
+        job_id,
+        event_type=query.event_type,
+        limit=query.limit,
+        offset=query.offset,
+        sort_direction=query.sort_direction,
+    )
 
     if events is None:
         raise NotFoundError("Job not found")

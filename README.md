@@ -219,6 +219,12 @@ Get job event history:
 curl "http://127.0.0.1:8000/api/jobs/1/events"
 ```
 
+Filter and paginate job event history:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/events?event_type=status_changed&limit=10&offset=0&sort_direction=desc"
+```
+
 Get transcript:
 
 ```bash

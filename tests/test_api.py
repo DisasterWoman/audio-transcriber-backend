@@ -63,10 +63,12 @@ def test_job_stats_endpoint(monkeypatch):
 
 
 def test_job_events_endpoint(monkeypatch):
-    monkeypatch.setattr(
-        jobs_api,
-        "get_events_for_job",
-        lambda job_id: {
+    calls = []
+
+    def fake_get_events_for_job(job_id, **kwargs):
+        call = {"job_id": job_id, **kwargs}
+        calls.append(call)
+        return {
             "items": [
                 {
                     "id": 1,
@@ -77,18 +79,39 @@ def test_job_events_endpoint(monkeypatch):
                 }
             ],
             "total": 1,
-        },
+            "limit": kwargs["limit"],
+            "offset": kwargs["offset"],
+        }
+
+    monkeypatch.setattr(
+        jobs_api,
+        "get_events_for_job",
+        fake_get_events_for_job,
     )
 
-    response = client.get("/api/jobs/1/events")
+    response = client.get(
+        "/api/jobs/1/events?event_type=job_created&limit=10"
+        "&offset=5&sort_direction=desc"
+    )
 
     assert response.status_code == 200
     assert response.json()["total"] == 1
+    assert response.json()["limit"] == 10
+    assert response.json()["offset"] == 5
     assert response.json()["items"][0]["event_type"] == "job_created"
+    assert calls == [
+        {
+            "job_id": 1,
+            "event_type": "job_created",
+            "limit": 10,
+            "offset": 5,
+            "sort_direction": "desc",
+        }
+    ]
 
 
 def test_job_events_endpoint_returns_404_when_job_is_missing(monkeypatch):
-    monkeypatch.setattr(jobs_api, "get_events_for_job", lambda job_id: None)
+    monkeypatch.setattr(jobs_api, "get_events_for_job", lambda job_id, **kwargs: None)
 
     response = client.get("/api/jobs/999/events")
 

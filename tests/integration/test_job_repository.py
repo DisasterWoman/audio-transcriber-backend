@@ -149,6 +149,8 @@ def test_repository_saves_lists_and_cascades_job_events():
     events = job_event_repository.list_job_events(saved_job["id"])
 
     assert events["total"] == 2
+    assert events["limit"] == 50
+    assert events["offset"] == 0
     assert [event["id"] for event in events["items"]] == [
         first_event["id"],
         second_event["id"],
@@ -159,4 +161,44 @@ def test_repository_saves_lists_and_cascades_job_events():
 
     events_after_delete = job_event_repository.list_job_events(saved_job["id"])
 
-    assert events_after_delete == {"items": [], "total": 0}
+    assert events_after_delete == {"items": [], "total": 0, "limit": 50, "offset": 0}
+
+
+def test_repository_filters_paginates_and_sorts_job_events():
+    saved_job = job_repository.save_job(make_job("integration-event-filters.mp3"))
+
+    job_event_repository.save_job_event(
+        JobEventCreate(
+            job_id=saved_job["id"],
+            event_type=JobEventType.job_created,
+            message="integration-created",
+        )
+    )
+    first_status_event = job_event_repository.save_job_event(
+        JobEventCreate(
+            job_id=saved_job["id"],
+            event_type=JobEventType.status_changed,
+            message="integration-status-one",
+        )
+    )
+    second_status_event = job_event_repository.save_job_event(
+        JobEventCreate(
+            job_id=saved_job["id"],
+            event_type=JobEventType.status_changed,
+            message="integration-status-two",
+        )
+    )
+
+    events = job_event_repository.list_job_events(
+        saved_job["id"],
+        event_type=JobEventType.status_changed,
+        limit=1,
+        offset=0,
+        sort_direction=SortDirection.desc,
+    )
+
+    assert events["total"] == 2
+    assert events["limit"] == 1
+    assert events["offset"] == 0
+    assert [event["id"] for event in events["items"]] == [second_status_event["id"]]
+    assert first_status_event["id"] != second_status_event["id"]
