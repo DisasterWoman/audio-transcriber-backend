@@ -178,6 +178,25 @@ def test_get_job_actions_for_failed_job_at_retry_limit(monkeypatch):
     assert actions["retry_attempts_remaining"] == 0
 
 
+def test_get_job_status_detail_returns_lightweight_status(monkeypatch):
+    stored_job = make_job(JobStatus.failed)
+    stored_job["processing_attempts"] = 2
+    stored_job["failure_summary"] = "Provider timeout"
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    status_detail = job_service.get_job_status_detail(1)
+
+    assert status_detail["job_id"] == 1
+    assert status_detail["status"] == JobStatus.failed
+    assert status_detail["is_terminal"] is True
+    assert status_detail["processing_attempts"] == 2
+    assert status_detail["max_processing_attempts"] == 3
+    assert status_detail["retry_attempts_remaining"] == 1
+    assert status_detail["failure_summary"] == "Provider timeout"
+    assert "transcript_text" not in status_detail
+
+
 def test_update_job_transcript_records_event(monkeypatch):
     stored_job = make_job(JobStatus.processing)
     saved_events = []

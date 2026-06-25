@@ -72,6 +72,22 @@ class JobActions(AppBaseModel):
     retry_attempts_remaining: int = Field(ge=0)
 
 
+class JobStatusDetail(AppBaseModel):
+    job_id: int
+    status: JobStatus
+    is_terminal: bool
+    processing_attempts: int = Field(ge=0)
+    max_processing_attempts: int = Field(ge=1)
+    retry_attempts_remaining: int = Field(ge=0)
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    processing_duration_seconds: int | None = Field(default=None, ge=0)
+    total_duration_seconds: int | None = Field(default=None, ge=0)
+    failure_summary: str | None
+
+
 class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None

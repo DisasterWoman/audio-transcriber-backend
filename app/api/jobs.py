@@ -13,6 +13,7 @@ from app.schemas.job import (
     JobList,
     JobListQuery,
     JobStats,
+    JobStatusDetail,
     JobStatusUpdate,
     JobSummary,
     JobTranscript,
@@ -45,6 +46,7 @@ from app.services.job_service import (
     get_job_actions,
     get_job_by_id,
     get_job_stats,
+    get_job_status_detail,
     get_job_summary,
     get_job_transcript,
     get_job_transcript_metadata,
@@ -88,6 +90,16 @@ def get_job(job_id: int):
         raise NotFoundError("Job not found")
 
     return job
+
+
+@router.get("/{job_id}/status", response_model=JobStatusDetail)
+def get_status(job_id: int):
+    status_detail = get_job_status_detail(job_id)
+
+    if status_detail is None:
+        raise NotFoundError("Job not found")
+
+    return status_detail
 
 
 @router.get("/{job_id}/actions", response_model=JobActions)

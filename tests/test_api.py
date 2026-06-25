@@ -142,6 +142,46 @@ def test_job_actions_endpoint_returns_404_when_job_is_missing(monkeypatch):
     assert response.json()["error"]["message"] == "Job not found"
 
 
+def test_job_status_endpoint(monkeypatch):
+    job = make_job(JobStatus.processing)
+
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_status_detail",
+        lambda job_id: {
+            "job_id": job_id,
+            "status": job["status"],
+            "is_terminal": job["is_terminal"],
+            "processing_attempts": job["processing_attempts"],
+            "max_processing_attempts": 3,
+            "retry_attempts_remaining": 3,
+            "created_at": job["created_at"],
+            "updated_at": job["updated_at"],
+            "started_at": job["started_at"],
+            "completed_at": job["completed_at"],
+            "processing_duration_seconds": job["processing_duration_seconds"],
+            "total_duration_seconds": job["total_duration_seconds"],
+            "failure_summary": job["failure_summary"],
+        },
+    )
+
+    response = client.get("/api/jobs/1/status")
+
+    assert response.status_code == 200
+    assert response.json()["job_id"] == 1
+    assert response.json()["status"] == "processing"
+    assert "transcript_text" not in response.json()
+
+
+def test_job_status_endpoint_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_job_status_detail", lambda job_id: None)
+
+    response = client.get("/api/jobs/999/status")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_job_events_endpoint(monkeypatch):
     calls = []
 

@@ -176,6 +176,29 @@ def get_job_actions(job_id: int):
     }
 
 
+def get_job_status_detail(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    return {
+        "job_id": job["id"],
+        "status": job["status"],
+        "is_terminal": job["is_terminal"],
+        "processing_attempts": job["processing_attempts"],
+        "max_processing_attempts": settings.max_processing_attempts,
+        "retry_attempts_remaining": get_retry_attempts_remaining(job),
+        "created_at": job["created_at"],
+        "updated_at": job["updated_at"],
+        "started_at": job["started_at"],
+        "completed_at": job["completed_at"],
+        "processing_duration_seconds": job["processing_duration_seconds"],
+        "total_duration_seconds": job["total_duration_seconds"],
+        "failure_summary": job["failure_summary"],
+    }
+
+
 def get_events_for_job(
     job_id: int,
     event_type: JobEventType | None = None,

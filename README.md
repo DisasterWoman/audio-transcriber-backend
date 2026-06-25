@@ -115,6 +115,7 @@ GET   /api/jobs/
 GET   /api/jobs/stats
 GET   /api/jobs/summary
 GET   /api/jobs/{job_id}
+GET   /api/jobs/{job_id}/status
 GET   /api/jobs/{job_id}/actions
 GET   /api/jobs/{job_id}/events
 DELETE /api/jobs/{job_id}
@@ -241,6 +242,12 @@ Get available actions for a job:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/actions"
+```
+
+Get lightweight status for polling:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/status"
 ```
 
 Get job event history:
