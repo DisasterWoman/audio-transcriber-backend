@@ -112,6 +112,7 @@ class Job(AppBaseModel):
     processing_duration_seconds: int | None = Field(default=None, ge=0)
     total_duration_seconds: int | None = Field(default=None, ge=0)
     error_message: str | None
+    failure_summary: str | None
     transcript_text: str | None
     transcript_preview: str | None
 

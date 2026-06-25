@@ -166,10 +166,11 @@ is_terminal
 processing_duration_seconds
 total_duration_seconds
 transcript_preview
+failure_summary
 ```
 
-These values are calculated from the job status, timestamps, and transcript text.
-They are not stored as separate database columns.
+These values are calculated from the job status, timestamps, transcript text, and
+error message. They are not stored as separate database columns.
 
 You can disable automatic processing per upload by sending:
 

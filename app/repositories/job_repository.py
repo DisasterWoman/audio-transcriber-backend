@@ -11,6 +11,8 @@ from app.schemas.sorting import JobSortField, SortDirection
 
 TERMINAL_STATUSES = {JobStatus.done, JobStatus.failed}
 TRANSCRIPT_PREVIEW_LENGTH = 120
+FAILURE_SUMMARY_LENGTH = 160
+MISSING_FAILURE_MESSAGE = "Job failed without a recorded error message"
 
 JOB_SORT_COLUMNS = {
     JobSortField.created_at: JobModel.created_at,
@@ -193,6 +195,7 @@ def model_to_job(job: JobModel) -> dict:
             job.completed_at,
         ),
         "error_message": job.error_message,
+        "failure_summary": build_failure_summary(status, job.error_message),
         "transcript_text": job.transcript_text,
         "transcript_preview": build_transcript_preview(job.transcript_text),
     }
@@ -218,3 +221,21 @@ def build_transcript_preview(transcript_text: str | None) -> str | None:
         return normalized_text
 
     return f"{normalized_text[:TRANSCRIPT_PREVIEW_LENGTH].rstrip()}..."
+
+
+def build_failure_summary(
+    status: JobStatus,
+    error_message: str | None,
+) -> str | None:
+    if status != JobStatus.failed:
+        return None
+
+    if not error_message:
+        return MISSING_FAILURE_MESSAGE
+
+    normalized_message = " ".join(error_message.split())
+
+    if len(normalized_message) <= FAILURE_SUMMARY_LENGTH:
+        return normalized_message
+
+    return f"{normalized_message[:FAILURE_SUMMARY_LENGTH].rstrip()}..."
