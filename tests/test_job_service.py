@@ -123,6 +123,16 @@ def test_retry_failed_job_resets_job_for_processing(monkeypatch):
     assert job["transcript_text"] is None
 
 
+def test_retry_failed_job_rejects_when_attempt_limit_is_reached(monkeypatch):
+    stored_job = make_job(JobStatus.failed)
+    stored_job["processing_attempts"] = 3
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    with pytest.raises(job_service.MaxProcessingAttemptsReached):
+        job_service.retry_failed_job(1)
+
+
 def test_retry_failed_job_rejects_non_failed_job(monkeypatch):
     stored_job = make_job(JobStatus.done)
 
@@ -130,6 +140,42 @@ def test_retry_failed_job_rejects_non_failed_job(monkeypatch):
 
     with pytest.raises(job_service.InvalidJobStatusTransition):
         job_service.retry_failed_job(1)
+
+
+def test_get_job_actions_for_queued_job(monkeypatch):
+    stored_job = make_job(JobStatus.queued)
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(job_service, "stored_file_exists", lambda filename: True)
+
+    actions = job_service.get_job_actions(1)
+
+    assert actions["process"] == {"enabled": True, "reason": None}
+    assert actions["retry"]["enabled"] is False
+    assert actions["download_transcript"]["enabled"] is False
+    assert actions["download_audio"] == {"enabled": True, "reason": None}
+    assert actions["retry_attempts_remaining"] == 3
+
+
+def test_get_job_actions_for_failed_job_at_retry_limit(monkeypatch):
+    stored_job = make_job(JobStatus.failed)
+    stored_job["processing_attempts"] = 3
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(job_service, "stored_file_exists", lambda filename: False)
+
+    actions = job_service.get_job_actions(1)
+
+    assert actions["process"]["enabled"] is False
+    assert actions["retry"] == {
+        "enabled": False,
+        "reason": "Maximum processing attempts reached",
+    }
+    assert actions["download_audio"] == {
+        "enabled": False,
+        "reason": "Stored audio file is missing",
+    }
+    assert actions["retry_attempts_remaining"] == 0
 
 
 def test_update_job_transcript_records_event(monkeypatch):

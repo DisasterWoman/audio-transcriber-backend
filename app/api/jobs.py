@@ -7,6 +7,7 @@ from app.core.errors import NotFoundError
 from app.core.settings import settings
 from app.schemas.job import (
     Job,
+    JobActions,
     JobCreate,
     JobCreateRequest,
     JobList,
@@ -39,6 +40,7 @@ from app.services.job_service import (
     delete_job_by_id,
     get_all_jobs,
     get_events_for_job,
+    get_job_actions,
     get_job_by_id,
     get_job_stats,
     get_job_transcript,
@@ -77,6 +79,16 @@ def get_job(job_id: int):
         raise NotFoundError("Job not found")
 
     return job
+
+
+@router.get("/{job_id}/actions", response_model=JobActions)
+def get_actions(job_id: int):
+    actions = get_job_actions(job_id)
+
+    if actions is None:
+        raise NotFoundError("Job not found")
+
+    return actions
 
 
 @router.get("/{job_id}/events", response_model=JobEventList)

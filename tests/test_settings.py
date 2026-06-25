@@ -23,6 +23,7 @@ def test_settings_accept_valid_values():
 
     assert settings.app_env == "test"
     assert settings.max_upload_size_mb == 25
+    assert settings.max_processing_attempts == 3
     assert settings.transcription_provider == "stub"
 
 
@@ -53,3 +54,8 @@ def test_settings_reject_empty_csv_values():
 def test_settings_reject_too_small_upload_limit():
     with pytest.raises(ValidationError):
         make_settings(max_upload_size_mb=0)
+
+
+def test_settings_reject_too_small_processing_attempt_limit():
+    with pytest.raises(ValidationError):
+        make_settings(max_processing_attempts=0)

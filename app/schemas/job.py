@@ -47,6 +47,22 @@ class JobTranscript(AppBaseModel):
     transcript_text: str
 
 
+class JobActionState(AppBaseModel):
+    enabled: bool
+    reason: str | None = None
+
+
+class JobActions(AppBaseModel):
+    job_id: int
+    process: JobActionState
+    retry: JobActionState
+    download_transcript: JobActionState
+    download_audio: JobActionState
+    processing_attempts: int = Field(ge=0)
+    max_processing_attempts: int = Field(ge=1)
+    retry_attempts_remaining: int = Field(ge=0)
+
+
 class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None

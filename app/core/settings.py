@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     )
     max_upload_size_mb: int = Field(default=25, ge=1)
     auto_process_uploads: bool = True
+    max_processing_attempts: int = Field(default=3, ge=1)
     transcription_provider: Literal["stub"] = "stub"
     stub_transcript_text: str = Field(
         default="This is a development transcript placeholder.",

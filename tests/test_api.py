@@ -62,6 +62,43 @@ def test_job_stats_endpoint(monkeypatch):
     }
 
 
+def test_job_actions_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_actions",
+        lambda job_id: {
+            "job_id": job_id,
+            "process": {"enabled": True, "reason": None},
+            "retry": {"enabled": False, "reason": "Can only retry failed jobs"},
+            "download_transcript": {
+                "enabled": False,
+                "reason": "Transcript is only available after the job is done",
+            },
+            "download_audio": {"enabled": True, "reason": None},
+            "processing_attempts": 0,
+            "max_processing_attempts": 3,
+            "retry_attempts_remaining": 3,
+        },
+    )
+
+    response = client.get("/api/jobs/1/actions")
+
+    assert response.status_code == 200
+    assert response.json()["job_id"] == 1
+    assert response.json()["process"] == {"enabled": True, "reason": None}
+    assert response.json()["retry"]["enabled"] is False
+    assert response.json()["retry_attempts_remaining"] == 3
+
+
+def test_job_actions_endpoint_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_job_actions", lambda job_id: None)
+
+    response = client.get("/api/jobs/999/actions")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_job_events_endpoint(monkeypatch):
     calls = []
 

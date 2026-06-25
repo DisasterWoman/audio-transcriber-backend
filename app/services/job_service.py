@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from app.core.errors import ConflictError
+from app.core.settings import settings
 from app.repositories.job_event_repository import list_job_events, save_job_event
 from app.repositories.job_repository import (
     delete_job,
@@ -15,7 +16,7 @@ from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
-from app.services.file_storage import delete_stored_file
+from app.services.file_storage import delete_stored_file, stored_file_exists
 
 ALLOWED_STATUS_TRANSITIONS = {
     JobStatus.queued: {JobStatus.processing, JobStatus.failed},
@@ -52,6 +53,14 @@ class JobTranscriptNotReady(ConflictError):
     def __init__(self, status: JobStatus):
         self.status = status
         super().__init__(f"Transcript is not ready when job status is {status.value}")
+
+
+class MaxProcessingAttemptsReached(ConflictError):
+    def __init__(self, max_attempts: int):
+        self.max_attempts = max_attempts
+        super().__init__(
+            f"Cannot retry job after {max_attempts} processing attempts"
+        )
 
 
 def get_all_jobs(
@@ -106,6 +115,38 @@ def get_job_stats() -> dict:
         "processing": counts[JobStatus.processing],
         "done": counts[JobStatus.done],
         "failed": counts[JobStatus.failed],
+    }
+
+
+def get_job_actions(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    attempts_remaining = get_retry_attempts_remaining(job)
+
+    return {
+        "job_id": job["id"],
+        "process": build_action_state(
+            job["status"] == JobStatus.queued,
+            f"Cannot process job when status is {job['status'].value}",
+        ),
+        "retry": build_action_state(
+            job["status"] == JobStatus.failed and attempts_remaining > 0,
+            get_retry_disabled_reason(job, attempts_remaining),
+        ),
+        "download_transcript": build_action_state(
+            job["status"] == JobStatus.done and bool(job["transcript_text"]),
+            "Transcript is only available after the job is done",
+        ),
+        "download_audio": build_action_state(
+            stored_file_exists(job["filename"]),
+            "Stored audio file is missing",
+        ),
+        "processing_attempts": job["processing_attempts"],
+        "max_processing_attempts": settings.max_processing_attempts,
+        "retry_attempts_remaining": attempts_remaining,
     }
 
 
@@ -252,6 +293,9 @@ def retry_failed_job(job_id: int):
     if job["status"] != JobStatus.failed:
         raise InvalidJobStatusTransition(job["status"], JobStatus.queued)
 
+    if get_retry_attempts_remaining(job) == 0:
+        raise MaxProcessingAttemptsReached(settings.max_processing_attempts)
+
     now = datetime.now(UTC)
 
     job["status"] = JobStatus.queued
@@ -305,3 +349,24 @@ def record_job_event(
             message=message,
         )
     )
+
+
+def get_retry_attempts_remaining(job: dict) -> int:
+    return max(settings.max_processing_attempts - job["processing_attempts"], 0)
+
+
+def get_retry_disabled_reason(job: dict, attempts_remaining: int) -> str:
+    if job["status"] != JobStatus.failed:
+        return f"Can only retry failed jobs, current status is {job['status'].value}"
+
+    if attempts_remaining == 0:
+        return "Maximum processing attempts reached"
+
+    return ""
+
+
+def build_action_state(enabled: bool, disabled_reason: str) -> dict:
+    return {
+        "enabled": enabled,
+        "reason": None if enabled else disabled_reason,
+    }
