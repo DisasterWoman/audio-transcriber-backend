@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from app.schemas.base import AppBaseModel
 from app.schemas.job_status import JobStatus
@@ -133,8 +133,31 @@ class Job(AppBaseModel):
     transcript_preview: str | None
 
 
+class JobListItem(AppBaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: int
+    filename: str
+    original_filename: str
+    file_size_bytes: int
+    content_type: str
+    language: LanguageCode
+    status: JobStatus
+    processing_attempts: int = Field(ge=0)
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    is_terminal: bool
+    processing_duration_seconds: int | None = Field(default=None, ge=0)
+    total_duration_seconds: int | None = Field(default=None, ge=0)
+    error_message: str | None
+    failure_summary: str | None
+    transcript_preview: str | None
+
+
 class JobList(PaginationMeta):
-    items: list[Job]
+    items: list[JobListItem]
 
 
 class JobStats(AppBaseModel):

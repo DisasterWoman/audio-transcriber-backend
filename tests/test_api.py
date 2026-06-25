@@ -64,6 +64,9 @@ def test_job_stats_endpoint(monkeypatch):
 
 def test_job_summary_endpoint(monkeypatch):
     calls = []
+    job = make_job(JobStatus.done)
+    job["transcript_text"] = "Full transcript should not be in summary response"
+    job["transcript_preview"] = "Full transcript should not..."
 
     def fake_get_job_summary(recent_limit: int):
         calls.append(recent_limit)
@@ -76,9 +79,9 @@ def test_job_summary_endpoint(monkeypatch):
                 "failed": 0,
             },
             "recent_jobs": {
-                "items": [],
+                "items": [job],
                 "total": 0,
-                "count": 0,
+                "count": 1,
                 "limit": recent_limit,
                 "offset": 0,
                 "has_next": False,
@@ -95,6 +98,9 @@ def test_job_summary_endpoint(monkeypatch):
     assert response.status_code == 200
     assert response.json()["stats"]["total"] == 2
     assert response.json()["recent_jobs"]["limit"] == 3
+    recent_job = response.json()["recent_jobs"]["items"][0]
+    assert "transcript_text" not in recent_job
+    assert recent_job["transcript_preview"] == "Full transcript should not..."
     assert calls == [3]
 
 
@@ -288,6 +294,35 @@ def test_jobs_list_accepts_search_query(monkeypatch):
     assert calls[0]["language"] == "en"
     assert calls[0]["created_from"].year == 2026
     assert calls[0]["created_to"].year == 2026
+
+
+def test_jobs_list_omits_full_transcript_text(monkeypatch):
+    job = make_job(JobStatus.done)
+    job["transcript_text"] = "Full transcript should not be in list response"
+    job["transcript_preview"] = "Full transcript should not..."
+
+    monkeypatch.setattr(
+        jobs_api,
+        "get_all_jobs",
+        lambda **kwargs: {
+            "items": [job],
+            "total": 1,
+            "count": 1,
+            "limit": kwargs["limit"],
+            "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
+        },
+    )
+
+    response = client.get("/api/jobs/")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert "transcript_text" not in item
+    assert item["transcript_preview"] == "Full transcript should not..."
 
 
 def test_jobs_list_rejects_invalid_created_range():

@@ -173,6 +173,10 @@ failure_summary
 These values are calculated from the job status, timestamps, transcript text, and
 error message. They are not stored as separate database columns.
 
+Job list and summary responses include `transcript_preview`, but do not include
+the full `transcript_text`. Fetch the job detail or transcript endpoint when the
+full transcript is needed.
+
 You can disable automatic processing per upload by sending:
 
 ```text
