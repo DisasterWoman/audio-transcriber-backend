@@ -10,6 +10,7 @@ from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
 TERMINAL_STATUSES = {JobStatus.done, JobStatus.failed}
+TRANSCRIPT_PREVIEW_LENGTH = 120
 
 JOB_SORT_COLUMNS = {
     JobSortField.created_at: JobModel.created_at,
@@ -193,6 +194,7 @@ def model_to_job(job: JobModel) -> dict:
         ),
         "error_message": job.error_message,
         "transcript_text": job.transcript_text,
+        "transcript_preview": build_transcript_preview(job.transcript_text),
     }
 
 
@@ -204,3 +206,15 @@ def calculate_duration_seconds(
         return None
 
     return max(int((completed_at - started_at).total_seconds()), 0)
+
+
+def build_transcript_preview(transcript_text: str | None) -> str | None:
+    if not transcript_text:
+        return None
+
+    normalized_text = " ".join(transcript_text.split())
+
+    if len(normalized_text) <= TRANSCRIPT_PREVIEW_LENGTH:
+        return normalized_text
+
+    return f"{normalized_text[:TRANSCRIPT_PREVIEW_LENGTH].rstrip()}..."

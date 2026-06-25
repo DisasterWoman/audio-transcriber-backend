@@ -113,6 +113,7 @@ class Job(AppBaseModel):
     total_duration_seconds: int | None = Field(default=None, ge=0)
     error_message: str | None
     transcript_text: str | None
+    transcript_preview: str | None
 
 
 class JobList(PaginationMeta):

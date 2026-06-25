@@ -165,10 +165,11 @@ Job responses also include derived lifecycle fields:
 is_terminal
 processing_duration_seconds
 total_duration_seconds
+transcript_preview
 ```
 
-These values are calculated from the job status and timestamps. They are not
-stored as separate database columns.
+These values are calculated from the job status, timestamps, and transcript text.
+They are not stored as separate database columns.
 
 You can disable automatic processing per upload by sending:
 
