@@ -40,6 +40,8 @@ def make_job(
     original_filename: str,
     status: JobStatus = JobStatus.queued,
     created_at: datetime | None = None,
+    started_at: datetime | None = None,
+    completed_at: datetime | None = None,
 ) -> dict:
     now = created_at or datetime.now(UTC)
 
@@ -53,8 +55,8 @@ def make_job(
         "processing_attempts": 0,
         "created_at": now,
         "updated_at": now,
-        "started_at": None,
-        "completed_at": None,
+        "started_at": started_at,
+        "completed_at": completed_at,
         "error_message": None,
         "transcript_text": None,
     }
@@ -126,6 +128,25 @@ def test_repository_counts_jobs_by_status():
     assert counts[JobStatus.done] >= 1
     assert counts[JobStatus.failed] >= 1
     assert counts[JobStatus.processing] >= 0
+
+
+def test_repository_returns_derived_job_timing_fields():
+    created_at = datetime.now(UTC) - timedelta(seconds=45)
+    started_at = created_at + timedelta(seconds=15)
+    completed_at = started_at + timedelta(seconds=30)
+    saved_job = job_repository.save_job(
+        make_job(
+            "integration-duration.mp3",
+            status=JobStatus.done,
+            created_at=created_at,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+    )
+
+    assert saved_job["is_terminal"] is True
+    assert saved_job["processing_duration_seconds"] == 30
+    assert saved_job["total_duration_seconds"] == 45
 
 
 def test_repository_saves_lists_and_cascades_job_events():

@@ -157,6 +157,17 @@ Each processing run increments `processing_attempts`. This makes failures easier
 to debug later because the API can show whether a job failed once or many times.
 Retries are capped by `MAX_PROCESSING_ATTEMPTS`.
 
+Job responses also include derived lifecycle fields:
+
+```text
+is_terminal
+processing_duration_seconds
+total_duration_seconds
+```
+
+These values are calculated from the job status and timestamps. They are not
+stored as separate database columns.
+
 You can disable automatic processing per upload by sending:
 
 ```text

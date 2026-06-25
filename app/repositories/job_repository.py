@@ -8,6 +8,8 @@ from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
+TERMINAL_STATUSES = {JobStatus.done, JobStatus.failed}
+
 JOB_SORT_COLUMNS = {
     JobSortField.created_at: JobModel.created_at,
     JobSortField.updated_at: JobModel.updated_at,
@@ -164,6 +166,8 @@ def job_to_model_values(job: dict) -> dict:
 
 
 def model_to_job(job: JobModel) -> dict:
+    status = JobStatus(job.status)
+
     return {
         "id": job.id,
         "filename": job.filename,
@@ -171,12 +175,31 @@ def model_to_job(job: JobModel) -> dict:
         "file_size_bytes": job.file_size_bytes,
         "content_type": job.content_type,
         "language": LanguageCode(job.language),
-        "status": JobStatus(job.status),
+        "status": status,
         "processing_attempts": job.processing_attempts,
         "created_at": job.created_at,
         "updated_at": job.updated_at,
         "started_at": job.started_at,
         "completed_at": job.completed_at,
+        "is_terminal": status in TERMINAL_STATUSES,
+        "processing_duration_seconds": calculate_duration_seconds(
+            job.started_at,
+            job.completed_at,
+        ),
+        "total_duration_seconds": calculate_duration_seconds(
+            job.created_at,
+            job.completed_at,
+        ),
         "error_message": job.error_message,
         "transcript_text": job.transcript_text,
     }
+
+
+def calculate_duration_seconds(
+    started_at: datetime | None,
+    completed_at: datetime | None,
+) -> int | None:
+    if started_at is None or completed_at is None:
+        return None
+
+    return max(int((completed_at - started_at).total_seconds()), 0)

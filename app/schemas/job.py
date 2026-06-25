@@ -99,6 +99,9 @@ class Job(AppBaseModel):
     updated_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+    is_terminal: bool
+    processing_duration_seconds: int | None = Field(default=None, ge=0)
+    total_duration_seconds: int | None = Field(default=None, ge=0)
     error_message: str | None
     transcript_text: str | None
 
