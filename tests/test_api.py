@@ -116,8 +116,13 @@ def test_job_events_endpoint(monkeypatch):
                 }
             ],
             "total": 1,
+            "count": 1,
             "limit": kwargs["limit"],
             "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": True,
+            "next_offset": None,
+            "previous_offset": 0,
         }
 
     monkeypatch.setattr(
@@ -133,8 +138,11 @@ def test_job_events_endpoint(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["total"] == 1
+    assert response.json()["count"] == 1
     assert response.json()["limit"] == 10
     assert response.json()["offset"] == 5
+    assert response.json()["has_next"] is False
+    assert response.json()["has_previous"] is True
     assert response.json()["items"][0]["event_type"] == "job_created"
     assert calls == [
         {
@@ -164,8 +172,13 @@ def test_jobs_list_accepts_search_query(monkeypatch):
         return {
             "items": [],
             "total": 0,
+            "count": 0,
             "limit": kwargs["limit"],
             "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
         }
 
     monkeypatch.setattr(jobs_api, "get_all_jobs", fake_get_all_jobs)
@@ -180,8 +193,13 @@ def test_jobs_list_accepts_search_query(monkeypatch):
     assert response.json() == {
         "items": [],
         "total": 0,
+        "count": 0,
         "limit": 10,
         "offset": 0,
+        "has_next": False,
+        "has_previous": False,
+        "next_offset": None,
+        "previous_offset": None,
     }
     assert calls[0]["search"] == "interview"
     assert calls[0]["language"] == "en"

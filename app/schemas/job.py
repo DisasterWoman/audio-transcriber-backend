@@ -5,6 +5,7 @@ from pydantic import Field, model_validator
 from app.schemas.base import AppBaseModel
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
+from app.schemas.pagination import PaginationMeta
 from app.schemas.sorting import JobSortField, SortDirection
 
 
@@ -106,11 +107,8 @@ class Job(AppBaseModel):
     transcript_text: str | None
 
 
-class JobList(AppBaseModel):
+class JobList(PaginationMeta):
     items: list[Job]
-    total: int = Field(ge=0)
-    limit: int = Field(ge=1)
-    offset: int = Field(ge=0)
 
 
 class JobStats(AppBaseModel):

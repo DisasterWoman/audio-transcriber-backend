@@ -16,8 +16,13 @@ def test_get_all_jobs_passes_search_to_repository(monkeypatch):
         return {
             "items": [],
             "total": 0,
+            "count": 0,
             "limit": kwargs["limit"],
             "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
         }
 
     monkeypatch.setattr(job_service, "list_jobs", fake_list_jobs)
@@ -37,8 +42,13 @@ def test_get_all_jobs_passes_search_to_repository(monkeypatch):
     assert result == {
         "items": [],
         "total": 0,
+        "count": 0,
         "limit": 10,
         "offset": 20,
+        "has_next": False,
+        "has_previous": False,
+        "next_offset": None,
+        "previous_offset": None,
     }
     assert calls == [
         {

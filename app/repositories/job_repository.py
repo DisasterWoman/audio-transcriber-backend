@@ -4,6 +4,7 @@ from sqlalchemy import func, select, text
 
 from app.db.session import SessionLocal, engine
 from app.models.job import JobModel
+from app.repositories.pagination import build_paginated_response
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
@@ -78,12 +79,12 @@ def list_jobs(
         total = session.scalar(total_statement) or 0
         jobs = session.scalars(jobs_statement).all()
 
-    return {
-        "items": [model_to_job(job) for job in jobs],
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-    }
+    return build_paginated_response(
+        items=[model_to_job(job) for job in jobs],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 def get_job_status_counts() -> dict[JobStatus, int]:

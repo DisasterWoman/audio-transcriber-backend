@@ -245,6 +245,19 @@ Filter and paginate job event history:
 curl "http://127.0.0.1:8000/api/jobs/1/events?event_type=status_changed&limit=10&offset=0&sort_direction=desc"
 ```
 
+Paginated list responses include:
+
+```text
+total
+count
+limit
+offset
+has_next
+has_previous
+next_offset
+previous_offset
+```
+
 Get transcript:
 
 ```bash

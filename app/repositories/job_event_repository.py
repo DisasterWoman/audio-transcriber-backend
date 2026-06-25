@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 
 from app.db.session import SessionLocal
 from app.models.job import JobEventModel
+from app.repositories.pagination import build_paginated_response
 from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.sorting import SortDirection
 
@@ -52,12 +53,12 @@ def list_job_events(
         total = session.scalar(total_statement) or 0
         events = session.scalars(events_statement).all()
 
-    return {
-        "items": [model_to_job_event(event) for event in events],
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-    }
+    return build_paginated_response(
+        items=[model_to_job_event(event) for event in events],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 def model_to_job_event(event: JobEventModel) -> dict:

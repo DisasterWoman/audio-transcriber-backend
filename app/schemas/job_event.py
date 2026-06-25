@@ -4,6 +4,7 @@ from enum import Enum
 from pydantic import Field
 
 from app.schemas.base import AppBaseModel
+from app.schemas.pagination import PaginationMeta
 from app.schemas.sorting import SortDirection
 
 
@@ -36,8 +37,5 @@ class JobEventListQuery(AppBaseModel):
     sort_direction: SortDirection = SortDirection.asc
 
 
-class JobEventList(AppBaseModel):
+class JobEventList(PaginationMeta):
     items: list[JobEvent]
-    total: int = Field(ge=0)
-    limit: int = Field(ge=1)
-    offset: int = Field(ge=0)

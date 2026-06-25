@@ -80,6 +80,9 @@ def test_repository_save_get_list_and_delete_job():
     )
 
     assert listed_jobs["total"] == 1
+    assert listed_jobs["count"] == 1
+    assert listed_jobs["has_next"] is False
+    assert listed_jobs["has_previous"] is False
     assert listed_jobs["items"][0]["id"] == saved_job["id"]
 
     assert job_repository.delete_job(saved_job["id"]) is True
@@ -170,8 +173,11 @@ def test_repository_saves_lists_and_cascades_job_events():
     events = job_event_repository.list_job_events(saved_job["id"])
 
     assert events["total"] == 2
+    assert events["count"] == 2
     assert events["limit"] == 50
     assert events["offset"] == 0
+    assert events["has_next"] is False
+    assert events["has_previous"] is False
     assert [event["id"] for event in events["items"]] == [
         first_event["id"],
         second_event["id"],
@@ -182,7 +188,17 @@ def test_repository_saves_lists_and_cascades_job_events():
 
     events_after_delete = job_event_repository.list_job_events(saved_job["id"])
 
-    assert events_after_delete == {"items": [], "total": 0, "limit": 50, "offset": 0}
+    assert events_after_delete == {
+        "items": [],
+        "total": 0,
+        "count": 0,
+        "limit": 50,
+        "offset": 0,
+        "has_next": False,
+        "has_previous": False,
+        "next_offset": None,
+        "previous_offset": None,
+    }
 
 
 def test_repository_filters_paginates_and_sorts_job_events():
@@ -219,7 +235,12 @@ def test_repository_filters_paginates_and_sorts_job_events():
     )
 
     assert events["total"] == 2
+    assert events["count"] == 1
     assert events["limit"] == 1
     assert events["offset"] == 0
+    assert events["has_next"] is True
+    assert events["has_previous"] is False
+    assert events["next_offset"] == 1
+    assert events["previous_offset"] is None
     assert [event["id"] for event in events["items"]] == [second_status_event["id"]]
     assert first_status_event["id"] != second_status_event["id"]

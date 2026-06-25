@@ -217,7 +217,17 @@ def test_get_events_for_job_returns_job_events(monkeypatch):
         job_service,
         "list_job_events",
         lambda job_id, **kwargs: calls.append({"job_id": job_id, **kwargs})
-        or {"items": [], "total": 0, "limit": kwargs["limit"], "offset": 5},
+        or {
+            "items": [],
+            "total": 0,
+            "count": 0,
+            "limit": kwargs["limit"],
+            "offset": 5,
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
+        },
     )
 
     events = job_service.get_events_for_job(
@@ -227,7 +237,17 @@ def test_get_events_for_job_returns_job_events(monkeypatch):
         offset=5,
     )
 
-    assert events == {"items": [], "total": 0, "limit": 10, "offset": 5}
+    assert events == {
+        "items": [],
+        "total": 0,
+        "count": 0,
+        "limit": 10,
+        "offset": 5,
+        "has_next": False,
+        "has_previous": False,
+        "next_offset": None,
+        "previous_offset": None,
+    }
     assert calls == [
         {
             "job_id": 1,
