@@ -194,6 +194,7 @@ def test_get_job_status_detail_returns_lightweight_status(monkeypatch):
     assert status_detail["max_processing_attempts"] == 3
     assert status_detail["retry_attempts_remaining"] == 1
     assert status_detail["failure_summary"] == "Provider timeout"
+    assert status_detail["has_transcript"] is False
     assert "transcript_text" not in status_detail
 
 

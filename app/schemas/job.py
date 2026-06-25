@@ -86,6 +86,7 @@ class JobStatusDetail(AppBaseModel):
     processing_duration_seconds: int | None = Field(default=None, ge=0)
     total_duration_seconds: int | None = Field(default=None, ge=0)
     failure_summary: str | None
+    has_transcript: bool
 
 
 class JobListQuery(AppBaseModel):
@@ -129,6 +130,7 @@ class Job(AppBaseModel):
     total_duration_seconds: int | None = Field(default=None, ge=0)
     error_message: str | None
     failure_summary: str | None
+    has_transcript: bool
     transcript_text: str | None
     transcript_preview: str | None
 
@@ -153,6 +155,7 @@ class JobListItem(AppBaseModel):
     total_duration_seconds: int | None = Field(default=None, ge=0)
     error_message: str | None
     failure_summary: str | None
+    has_transcript: bool
     transcript_preview: str | None
 
 

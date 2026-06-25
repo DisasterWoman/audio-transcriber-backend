@@ -26,6 +26,7 @@ def make_job(status: JobStatus = JobStatus.queued) -> dict:
         "total_duration_seconds": None,
         "error_message": None,
         "failure_summary": None,
+        "has_transcript": False,
         "transcript_text": None,
         "transcript_preview": None,
     }

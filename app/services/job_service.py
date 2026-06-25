@@ -196,6 +196,7 @@ def get_job_status_detail(job_id: int):
         "processing_duration_seconds": job["processing_duration_seconds"],
         "total_duration_seconds": job["total_duration_seconds"],
         "failure_summary": job["failure_summary"],
+        "has_transcript": job["has_transcript"],
     }
 
 

@@ -166,12 +166,17 @@ Job responses also include derived lifecycle fields:
 is_terminal
 processing_duration_seconds
 total_duration_seconds
+has_transcript
 transcript_preview
 failure_summary
 ```
 
 These values are calculated from the job status, timestamps, transcript text, and
 error message. They are not stored as separate database columns.
+
+`has_transcript` is a simple frontend-friendly flag. It is `true` when the job has
+non-empty transcript text, so the UI can enable transcript actions without
+checking the raw text itself.
 
 Job list and summary responses include `transcript_preview`, but do not include
 the full `transcript_text`. Fetch the job detail or transcript endpoint when the

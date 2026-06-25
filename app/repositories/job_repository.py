@@ -196,6 +196,7 @@ def model_to_job(job: JobModel) -> dict:
         ),
         "error_message": job.error_message,
         "failure_summary": build_failure_summary(status, job.error_message),
+        "has_transcript": has_transcript(job.transcript_text),
         "transcript_text": job.transcript_text,
         "transcript_preview": build_transcript_preview(job.transcript_text),
     }
@@ -216,6 +217,8 @@ def build_transcript_preview(transcript_text: str | None) -> str | None:
         return None
 
     normalized_text = " ".join(transcript_text.split())
+    if not normalized_text:
+        return None
 
     if len(normalized_text) <= TRANSCRIPT_PREVIEW_LENGTH:
         return normalized_text
@@ -239,3 +242,7 @@ def build_failure_summary(
         return normalized_message
 
     return f"{normalized_message[:FAILURE_SUMMARY_LENGTH].rstrip()}..."
+
+
+def has_transcript(transcript_text: str | None) -> bool:
+    return bool(transcript_text and transcript_text.strip())

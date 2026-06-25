@@ -168,6 +168,7 @@ def test_job_status_endpoint(monkeypatch):
             "processing_duration_seconds": job["processing_duration_seconds"],
             "total_duration_seconds": job["total_duration_seconds"],
             "failure_summary": job["failure_summary"],
+            "has_transcript": job["has_transcript"],
         },
     )
 
@@ -176,6 +177,7 @@ def test_job_status_endpoint(monkeypatch):
     assert response.status_code == 200
     assert response.json()["job_id"] == 1
     assert response.json()["status"] == "processing"
+    assert response.json()["has_transcript"] is False
     assert "transcript_text" not in response.json()
 
 
