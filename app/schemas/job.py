@@ -117,3 +117,8 @@ class JobStats(AppBaseModel):
     processing: int = Field(ge=0)
     done: int = Field(ge=0)
     failed: int = Field(ge=0)
+
+
+class JobSummary(AppBaseModel):
+    stats: JobStats
+    recent_jobs: JobList

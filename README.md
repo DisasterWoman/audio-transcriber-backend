@@ -113,6 +113,7 @@ GET  /api/languages/
 
 GET   /api/jobs/
 GET   /api/jobs/stats
+GET   /api/jobs/summary
 GET   /api/jobs/{job_id}
 GET   /api/jobs/{job_id}/actions
 GET   /api/jobs/{job_id}/events
@@ -225,6 +226,12 @@ List jobs:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10&search=interview&created_from=2026-06-01T00:00:00Z"
+```
+
+Get dashboard-style job summary:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/summary?recent_limit=5"
 ```
 
 Get available actions for a job:

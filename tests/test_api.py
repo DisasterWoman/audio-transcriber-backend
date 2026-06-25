@@ -62,6 +62,49 @@ def test_job_stats_endpoint(monkeypatch):
     }
 
 
+def test_job_summary_endpoint(monkeypatch):
+    calls = []
+
+    def fake_get_job_summary(recent_limit: int):
+        calls.append(recent_limit)
+        return {
+            "stats": {
+                "total": 2,
+                "queued": 1,
+                "processing": 0,
+                "done": 1,
+                "failed": 0,
+            },
+            "recent_jobs": {
+                "items": [],
+                "total": 0,
+                "count": 0,
+                "limit": recent_limit,
+                "offset": 0,
+                "has_next": False,
+                "has_previous": False,
+                "next_offset": None,
+                "previous_offset": None,
+            },
+        }
+
+    monkeypatch.setattr(jobs_api, "get_job_summary", fake_get_job_summary)
+
+    response = client.get("/api/jobs/summary?recent_limit=3")
+
+    assert response.status_code == 200
+    assert response.json()["stats"]["total"] == 2
+    assert response.json()["recent_jobs"]["limit"] == 3
+    assert calls == [3]
+
+
+def test_job_summary_endpoint_rejects_invalid_recent_limit():
+    response = client.get("/api/jobs/summary?recent_limit=0")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+
+
 def test_job_actions_endpoint(monkeypatch):
     monkeypatch.setattr(
         jobs_api,

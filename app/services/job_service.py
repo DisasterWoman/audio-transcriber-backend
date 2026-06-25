@@ -118,6 +118,18 @@ def get_job_stats() -> dict:
     }
 
 
+def get_job_summary(recent_limit: int = 5) -> dict:
+    return {
+        "stats": get_job_stats(),
+        "recent_jobs": get_all_jobs(
+            limit=recent_limit,
+            offset=0,
+            sort_by=JobSortField.created_at,
+            sort_direction=SortDirection.desc,
+        ),
+    }
+
+
 def get_job_actions(job_id: int):
     job = get_job_by_id(job_id)
 

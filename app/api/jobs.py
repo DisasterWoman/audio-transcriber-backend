@@ -14,6 +14,7 @@ from app.schemas.job import (
     JobListQuery,
     JobStats,
     JobStatusUpdate,
+    JobSummary,
     JobTranscript,
     JobTranscriptUpdate,
 )
@@ -43,6 +44,7 @@ from app.services.job_service import (
     get_job_actions,
     get_job_by_id,
     get_job_stats,
+    get_job_summary,
     get_job_transcript,
     update_job_status,
     update_job_transcript,
@@ -69,6 +71,11 @@ def get_jobs(query: Annotated[JobListQuery, Query()]):
 @router.get("/stats", response_model=JobStats)
 def get_jobs_stats():
     return get_job_stats()
+
+
+@router.get("/summary", response_model=JobSummary)
+def get_jobs_summary(recent_limit: int = Query(default=5, ge=1, le=20)):
+    return get_job_summary(recent_limit=recent_limit)
 
 
 @router.get("/{job_id}", response_model=Job)
