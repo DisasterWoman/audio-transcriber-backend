@@ -103,6 +103,20 @@ def get_job_transcript(job_id: int):
     return {
         "job_id": job["id"],
         "transcript_text": job["transcript_text"],
+        **get_transcript_metadata(job["transcript_text"]),
+    }
+
+
+def get_job_transcript_metadata(job_id: int):
+    transcript = get_job_transcript(job_id)
+
+    if transcript is None:
+        return None
+
+    return {
+        "job_id": transcript["job_id"],
+        "character_count": transcript["character_count"],
+        "word_count": transcript["word_count"],
     }
 
 
@@ -381,4 +395,11 @@ def build_action_state(enabled: bool, disabled_reason: str) -> dict:
     return {
         "enabled": enabled,
         "reason": None if enabled else disabled_reason,
+    }
+
+
+def get_transcript_metadata(transcript_text: str) -> dict:
+    return {
+        "character_count": len(transcript_text),
+        "word_count": len(transcript_text.split()),
     }

@@ -46,6 +46,14 @@ class JobTranscriptUpdate(AppBaseModel):
 class JobTranscript(AppBaseModel):
     job_id: int
     transcript_text: str
+    character_count: int = Field(ge=0)
+    word_count: int = Field(ge=0)
+
+
+class JobTranscriptMetadata(AppBaseModel):
+    job_id: int
+    character_count: int = Field(ge=0)
+    word_count: int = Field(ge=0)
 
 
 class JobActionState(AppBaseModel):

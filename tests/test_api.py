@@ -260,6 +260,59 @@ def test_jobs_list_rejects_invalid_created_range():
     assert response.json()["error"]["code"] == "validation_error"
 
 
+def test_get_transcript_returns_text_and_metadata(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript",
+        lambda job_id: {
+            "job_id": job_id,
+            "transcript_text": "Hello from transcript",
+            "character_count": 21,
+            "word_count": 3,
+        },
+    )
+
+    response = client.get("/api/jobs/1/transcript")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "job_id": 1,
+        "transcript_text": "Hello from transcript",
+        "character_count": 21,
+        "word_count": 3,
+    }
+
+
+def test_get_transcript_metadata_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_metadata",
+        lambda job_id: {
+            "job_id": job_id,
+            "character_count": 21,
+            "word_count": 3,
+        },
+    )
+
+    response = client.get("/api/jobs/1/transcript/metadata")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "job_id": 1,
+        "character_count": 21,
+        "word_count": 3,
+    }
+
+
+def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_job_transcript_metadata", lambda job_id: None)
+
+    response = client.get("/api/jobs/999/transcript/metadata")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_download_transcript_returns_text_file(monkeypatch):
     monkeypatch.setattr(
         jobs_api,
@@ -267,6 +320,8 @@ def test_download_transcript_returns_text_file(monkeypatch):
         lambda job_id: {
             "job_id": job_id,
             "transcript_text": "Hello from transcript",
+            "character_count": 21,
+            "word_count": 3,
         },
     )
 

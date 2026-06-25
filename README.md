@@ -125,6 +125,7 @@ POST  /api/jobs/{job_id}/retry
 PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
+GET   /api/jobs/{job_id}/transcript/metadata
 GET   /api/jobs/{job_id}/transcript/download
 GET   /api/jobs/{job_id}/audio/download
 ```
@@ -269,6 +270,12 @@ Get transcript:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript"
+```
+
+Get transcript metadata:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/transcript/metadata"
 ```
 
 Download transcript as text:

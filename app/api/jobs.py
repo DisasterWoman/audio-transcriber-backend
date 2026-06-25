@@ -16,6 +16,7 @@ from app.schemas.job import (
     JobStatusUpdate,
     JobSummary,
     JobTranscript,
+    JobTranscriptMetadata,
     JobTranscriptUpdate,
 )
 from app.schemas.job_event import JobEventList, JobEventListQuery
@@ -46,6 +47,7 @@ from app.services.job_service import (
     get_job_stats,
     get_job_summary,
     get_job_transcript,
+    get_job_transcript_metadata,
     update_job_status,
     update_job_transcript,
 )
@@ -122,6 +124,16 @@ def get_transcript(job_id: int):
         raise NotFoundError("Job not found")
 
     return transcript
+
+
+@router.get("/{job_id}/transcript/metadata", response_model=JobTranscriptMetadata)
+def get_transcript_metadata(job_id: int):
+    metadata = get_job_transcript_metadata(job_id)
+
+    if metadata is None:
+        raise NotFoundError("Job not found")
+
+    return metadata
 
 
 @router.get("/{job_id}/transcript/download", response_class=PlainTextResponse)

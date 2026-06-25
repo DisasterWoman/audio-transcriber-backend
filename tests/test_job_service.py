@@ -200,6 +200,37 @@ def test_update_job_transcript_records_event(monkeypatch):
     ]
 
 
+def test_get_job_transcript_returns_metadata(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Hello from transcript"
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    transcript = job_service.get_job_transcript(1)
+
+    assert transcript == {
+        "job_id": 1,
+        "transcript_text": "Hello from transcript",
+        "character_count": 21,
+        "word_count": 3,
+    }
+
+
+def test_get_job_transcript_metadata_returns_counts(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "One two  three"
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    metadata = job_service.get_job_transcript_metadata(1)
+
+    assert metadata == {
+        "job_id": 1,
+        "character_count": 14,
+        "word_count": 3,
+    }
+
+
 def test_get_events_for_job_returns_none_when_job_does_not_exist(monkeypatch):
     monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: None)
 
