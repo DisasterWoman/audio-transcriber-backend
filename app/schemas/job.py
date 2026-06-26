@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import ConfigDict, Field, model_validator
 
+from app.schemas.audio_source import AudioSource
 from app.schemas.base import AppBaseModel
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
@@ -14,6 +15,8 @@ class JobCreate(AppBaseModel):
     original_filename: str
     file_size_bytes: int = Field(ge=0)
     content_type: str
+    audio_source: AudioSource = AudioSource.uploaded_file
+    duration_seconds: int | None = Field(default=None, ge=0)
     language: LanguageCode
 
 
@@ -21,6 +24,8 @@ class JobCreateRequest(AppBaseModel):
     original_filename: str
     file_size_bytes: int = Field(ge=0)
     content_type: str
+    audio_source: AudioSource = AudioSource.uploaded_file
+    duration_seconds: int | None = Field(default=None, ge=0)
     language: LanguageCode
 
 
@@ -126,6 +131,7 @@ class JobActions(AppBaseModel):
     process: JobActionState
     retry: JobActionState
     cancel: JobActionState
+    edit_transcript: JobActionState
     download_transcript: JobActionState
     download_audio: JobActionState
     processing_attempts: int = Field(ge=0)
@@ -153,6 +159,7 @@ class JobStatusDetail(AppBaseModel):
 class JobListQuery(AppBaseModel):
     status: JobStatus | None = None
     language: LanguageCode | None = None
+    audio_source: AudioSource | None = None
     search: str | None = Field(default=None, min_length=1, max_length=100)
     created_from: datetime | None = None
     created_to: datetime | None = None
@@ -179,6 +186,8 @@ class Job(AppBaseModel):
     original_filename: str
     file_size_bytes: int
     content_type: str
+    audio_source: AudioSource
+    duration_seconds: int | None
     language: LanguageCode
     status: JobStatus
     processing_attempts: int = Field(ge=0)
@@ -204,6 +213,8 @@ class JobListItem(AppBaseModel):
     original_filename: str
     file_size_bytes: int
     content_type: str
+    audio_source: AudioSource
+    duration_seconds: int | None
     language: LanguageCode
     status: JobStatus
     processing_attempts: int = Field(ge=0)

@@ -21,6 +21,13 @@ class JobModel(Base):
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     content_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    audio_source: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="uploaded_file",
+        server_default="uploaded_file",
+    )
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
     language: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     processing_attempts: Mapped[int] = mapped_column(

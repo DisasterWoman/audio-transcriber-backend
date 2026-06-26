@@ -5,6 +5,7 @@ from sqlalchemy import func, select, text
 from app.db.session import SessionLocal, engine
 from app.models.job import JobModel
 from app.repositories.pagination import build_paginated_response
+from app.schemas.audio_source import AudioSource
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
@@ -39,6 +40,7 @@ def is_database_ready() -> bool:
 def list_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    audio_source: AudioSource | None = None,
     search: str | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
@@ -54,6 +56,9 @@ def list_jobs(
 
     if language is not None:
         filters.append(JobModel.language == language.value)
+
+    if audio_source is not None:
+        filters.append(JobModel.audio_source == audio_source.value)
 
     if search is not None:
         filters.append(JobModel.original_filename.ilike(f"%{search}%"))
@@ -157,6 +162,8 @@ def job_to_model_values(job: dict) -> dict:
         "original_filename": job["original_filename"],
         "file_size_bytes": job["file_size_bytes"],
         "content_type": job["content_type"],
+        "audio_source": job["audio_source"].value,
+        "duration_seconds": job["duration_seconds"],
         "language": job["language"].value,
         "status": job["status"].value,
         "processing_attempts": job["processing_attempts"],
@@ -178,6 +185,8 @@ def model_to_job(job: JobModel) -> dict:
         "original_filename": job.original_filename,
         "file_size_bytes": job.file_size_bytes,
         "content_type": job.content_type,
+        "audio_source": AudioSource(job.audio_source),
+        "duration_seconds": job.duration_seconds,
         "language": LanguageCode(job.language),
         "status": status,
         "processing_attempts": job.processing_attempts,

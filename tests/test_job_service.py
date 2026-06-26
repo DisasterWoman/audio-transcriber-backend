@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
+from app.schemas.audio_source import AudioSource
 from app.schemas.job import JobCreate
 from app.schemas.job_event import JobEventType
 from app.schemas.job_status import JobStatus
@@ -37,6 +38,8 @@ def test_create_job_starts_queued(monkeypatch):
             original_filename="interview.mp3",
             file_size_bytes=123,
             content_type="audio/mpeg",
+            audio_source=AudioSource.in_app_recording,
+            duration_seconds=42,
             language=LanguageCode.en,
         )
     )
@@ -46,6 +49,8 @@ def test_create_job_starts_queued(monkeypatch):
     assert job["started_at"] is None
     assert job["completed_at"] is None
     assert saved_jobs[0]["filename"] == "stored.mp3"
+    assert saved_jobs[0]["audio_source"] == AudioSource.in_app_recording
+    assert saved_jobs[0]["duration_seconds"] == 42
     assert saved_events == [
         {
             "job_id": 1,
@@ -190,6 +195,10 @@ def test_get_job_actions_for_queued_job(monkeypatch):
     assert actions["process"] == {"enabled": True, "reason": None}
     assert actions["retry"]["enabled"] is False
     assert actions["cancel"] == {"enabled": True, "reason": None}
+    assert actions["edit_transcript"] == {
+        "enabled": False,
+        "reason": "Transcript can only be edited after the job is done",
+    }
     assert actions["download_transcript"]["enabled"] is False
     assert actions["download_audio"] == {"enabled": True, "reason": None}
     assert actions["retry_attempts_remaining"] == 3
@@ -213,6 +222,7 @@ def test_get_job_actions_for_failed_job_at_retry_limit(monkeypatch):
         "enabled": False,
         "reason": "Can only cancel queued or processing jobs, current status is failed",
     }
+    assert actions["edit_transcript"]["enabled"] is False
     assert actions["download_audio"] == {
         "enabled": False,
         "reason": "Stored audio file is missing",
@@ -269,6 +279,60 @@ def test_update_job_transcript_records_event(monkeypatch):
     assert saved_events == [
         (1, JobEventType.transcript_updated, "Transcript was saved")
     ]
+
+
+def test_update_job_transcript_allows_editing_done_job(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Old transcript"
+    saved_revisions = []
+    saved_events = []
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(job_service, "update_job", lambda job: job)
+    monkeypatch.setattr(
+        job_service,
+        "save_transcript_revision",
+        lambda job_id, transcript_text: saved_revisions.append(
+            (job_id, transcript_text)
+        ),
+    )
+    monkeypatch.setattr(
+        job_service,
+        "record_job_event",
+        lambda job_id, event_type, message=None: saved_events.append(
+            (job_id, event_type, message)
+        ),
+    )
+
+    job = job_service.update_job_transcript(1, "Edited transcript")
+
+    assert job["transcript_text"] == "Edited transcript"
+    assert saved_revisions == [(1, "Edited transcript")]
+    assert saved_events == [
+        (1, JobEventType.transcript_edited, "Transcript was edited")
+    ]
+
+
+def test_update_job_transcript_rejects_queued_job(monkeypatch):
+    stored_job = make_job(JobStatus.queued)
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    with pytest.raises(job_service.InvalidJobTranscriptUpdate):
+        job_service.update_job_transcript(1, "Too early")
+
+
+def test_get_job_actions_for_done_job_allows_transcript_edit(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Ready transcript"
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(job_service, "stored_file_exists", lambda filename: True)
+
+    actions = job_service.get_job_actions(1)
+
+    assert actions["edit_transcript"] == {"enabled": True, "reason": None}
+    assert actions["download_transcript"] == {"enabled": True, "reason": None}
 
 
 def test_get_job_transcript_returns_metadata(monkeypatch):

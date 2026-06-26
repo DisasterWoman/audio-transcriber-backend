@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 
 from app.core.errors import NotFoundError
 from app.core.settings import settings
+from app.schemas.audio_source import AudioSource
 from app.schemas.job import (
     Job,
     JobActions,
@@ -75,6 +76,7 @@ def get_jobs(query: Annotated[JobListQuery, Query()]):
     return get_all_jobs(
         status=query.status,
         language=query.language,
+        audio_source=query.audio_source,
         search=query.search,
         created_from=query.created_from,
         created_to=query.created_to,
@@ -311,6 +313,8 @@ def create_new_job(job: JobCreateRequest):
         original_filename=job.original_filename,
         file_size_bytes=job.file_size_bytes,
         content_type=job.content_type,
+        audio_source=job.audio_source,
+        duration_seconds=job.duration_seconds,
         language=job.language,
     )
 
@@ -380,6 +384,8 @@ async def upload_audio(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     language: LanguageCode = Form(LanguageCode.ru),
+    audio_source: AudioSource = Form(AudioSource.uploaded_file),
+    duration_seconds: int | None = Form(None, ge=0),
     auto_process: bool | None = Form(None),
 ):
     validate_audio_file(file.filename)
@@ -392,6 +398,8 @@ async def upload_audio(
         original_filename=stored_file.original_filename,
         file_size_bytes=stored_file.size_bytes,
         content_type=stored_file.content_type,
+        audio_source=audio_source,
+        duration_seconds=duration_seconds,
         language=language,
     )
 

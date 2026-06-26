@@ -200,7 +200,18 @@ Job list and summary responses include `transcript_preview`, but do not include
 the full `transcript_text`. Fetch the job detail or transcript endpoint when the
 full transcript is needed.
 
-Every saved transcript update creates a numbered transcript revision. Revision
+Jobs also store audio source metadata:
+
+```text
+audio_source       uploaded_file | in_app_recording
+duration_seconds  optional recording/audio duration
+```
+
+This lets a future app recorder use the same upload pipeline as voice memo files
+while still showing users where the audio came from.
+
+Every saved transcript update creates a numbered transcript revision. Processing
+can save the first transcript, and finished jobs can be edited later. Revision
 lists include previews and counts, while a single revision endpoint returns the
 full text for that version. Restoring a revision makes that older transcript the
 current transcript again and records a new revision for the restore.
@@ -254,6 +265,8 @@ curl -X POST http://127.0.0.1:8000/api/jobs/ \
     "original_filename": "interview.mp3",
     "file_size_bytes": 123,
     "content_type": "audio/mpeg",
+    "audio_source": "uploaded_file",
+    "duration_seconds": 180,
     "language": "en"
   }'
 ```
@@ -261,7 +274,17 @@ curl -X POST http://127.0.0.1:8000/api/jobs/ \
 List jobs:
 
 ```bash
-curl "http://127.0.0.1:8000/api/jobs/?language=en&limit=10&search=interview&created_from=2026-06-01T00:00:00Z"
+curl "http://127.0.0.1:8000/api/jobs/?language=en&audio_source=in_app_recording&limit=10&search=interview&created_from=2026-06-01T00:00:00Z"
+```
+
+Upload an in-app recording:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/jobs/upload" \
+  -F "file=@recording.webm;type=audio/webm" \
+  -F "language=en" \
+  -F "audio_source=in_app_recording" \
+  -F "duration_seconds=180"
 ```
 
 Get dashboard-style job summary:
@@ -317,6 +340,14 @@ Get transcript:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript"
+```
+
+Edit a finished transcript:
+
+```bash
+curl -X PATCH "http://127.0.0.1:8000/api/jobs/1/transcript" \
+  -H "Content-Type: application/json" \
+  -d '{"transcript_text": "Edited transcript text"}'
 ```
 
 Get transcript metadata:
@@ -377,7 +408,7 @@ Check database rows:
 
 ```bash
 docker compose exec postgres psql -U transcriber -d audio_transcriber \
-  -c "SELECT id, original_filename, status FROM jobs;"
+  -c "SELECT id, original_filename, audio_source, duration_seconds, status FROM jobs;"
 ```
 
 ## Database Migrations

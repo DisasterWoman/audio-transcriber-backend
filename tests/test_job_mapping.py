@@ -6,6 +6,7 @@ from app.repositories.job_repository import (
     TRANSCRIPT_PREVIEW_LENGTH,
     model_to_job,
 )
+from app.schemas.audio_source import AudioSource
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 
@@ -21,6 +22,8 @@ def test_model_to_job_adds_derived_timing_fields_for_completed_job():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.in_app_recording.value,
+        duration_seconds=42,
         language=LanguageCode.en.value,
         status=JobStatus.done.value,
         processing_attempts=1,
@@ -38,6 +41,8 @@ def test_model_to_job_adds_derived_timing_fields_for_completed_job():
     assert job["processing_duration_seconds"] == 30
     assert job["total_duration_seconds"] == 35
     assert job["failure_summary"] is None
+    assert job["audio_source"] == AudioSource.in_app_recording
+    assert job["duration_seconds"] == 42
     assert job["has_transcript"] is True
     assert job["transcript_preview"] == "hello"
 
@@ -51,6 +56,8 @@ def test_model_to_job_keeps_duration_fields_empty_for_queued_job():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.queued.value,
         processing_attempts=0,
@@ -82,6 +89,8 @@ def test_model_to_job_truncates_long_transcript_preview():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.done.value,
         processing_attempts=1,
@@ -109,6 +118,8 @@ def test_model_to_job_adds_failure_summary_for_failed_job():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.failed.value,
         processing_attempts=1,
@@ -134,6 +145,8 @@ def test_model_to_job_marks_canceled_job_as_terminal_without_failure_summary():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.canceled.value,
         processing_attempts=0,
@@ -160,6 +173,8 @@ def test_model_to_job_truncates_long_failure_summary():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.failed.value,
         processing_attempts=1,
@@ -186,6 +201,8 @@ def test_model_to_job_marks_whitespace_transcript_as_missing():
         original_filename="interview.mp3",
         file_size_bytes=123,
         content_type="audio/mpeg",
+        audio_source=AudioSource.uploaded_file.value,
+        duration_seconds=None,
         language=LanguageCode.en.value,
         status=JobStatus.done.value,
         processing_attempts=1,

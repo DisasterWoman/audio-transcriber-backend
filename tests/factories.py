@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from app.schemas.audio_source import AudioSource
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 
@@ -14,6 +15,8 @@ def make_job(status: JobStatus = JobStatus.queued) -> dict:
         "original_filename": "interview.mp3",
         "file_size_bytes": 123,
         "content_type": "audio/mpeg",
+        "audio_source": AudioSource.uploaded_file,
+        "duration_seconds": None,
         "language": LanguageCode.en,
         "status": status,
         "processing_attempts": 0,

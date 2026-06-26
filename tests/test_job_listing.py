@@ -54,6 +54,7 @@ def test_get_all_jobs_passes_search_to_repository(monkeypatch):
         {
             "status": JobStatus.done,
             "language": LanguageCode.en,
+            "audio_source": None,
             "search": "interview",
             "created_from": created_from,
             "created_to": created_to,

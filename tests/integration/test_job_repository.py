@@ -10,6 +10,7 @@ from app.repositories import (
     job_repository,
     transcript_revision_repository,
 )
+from app.schemas.audio_source import AudioSource
 from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
@@ -63,6 +64,8 @@ def make_job(
         "original_filename": original_filename,
         "file_size_bytes": 123,
         "content_type": "audio/mpeg",
+        "audio_source": AudioSource.uploaded_file,
+        "duration_seconds": None,
         "language": LanguageCode.en,
         "status": status,
         "processing_attempts": 0,
@@ -76,15 +79,21 @@ def make_job(
 
 
 def test_repository_save_get_list_and_delete_job():
-    saved_job = job_repository.save_job(make_job("integration-alpha.mp3"))
+    job_data = make_job("integration-alpha.mp3")
+    job_data["audio_source"] = AudioSource.in_app_recording
+    job_data["duration_seconds"] = 42
+    saved_job = job_repository.save_job(job_data)
 
     found_job = job_repository.get_job(saved_job["id"])
 
     assert found_job is not None
     assert found_job["original_filename"] == "integration-alpha.mp3"
+    assert found_job["audio_source"] == AudioSource.in_app_recording
+    assert found_job["duration_seconds"] == 42
 
     listed_jobs = job_repository.list_jobs(
         language=LanguageCode.en,
+        audio_source=AudioSource.in_app_recording,
         search="alpha",
         limit=10,
         offset=0,

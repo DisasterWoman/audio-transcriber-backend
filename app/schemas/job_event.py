@@ -15,6 +15,7 @@ class JobEventType(str, Enum):
     processing_attempt_started = "processing_attempt_started"
     job_retried = "job_retried"
     job_canceled = "job_canceled"
+    transcript_edited = "transcript_edited"
     transcript_restored = "transcript_restored"
 
 

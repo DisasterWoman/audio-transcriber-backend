@@ -123,6 +123,10 @@ def test_job_actions_endpoint(monkeypatch):
             "process": {"enabled": True, "reason": None},
             "retry": {"enabled": False, "reason": "Can only retry failed jobs"},
             "cancel": {"enabled": True, "reason": None},
+            "edit_transcript": {
+                "enabled": False,
+                "reason": "Transcript can only be edited after the job is done",
+            },
             "download_transcript": {
                 "enabled": False,
                 "reason": "Transcript is only available after the job is done",
@@ -141,6 +145,7 @@ def test_job_actions_endpoint(monkeypatch):
     assert response.json()["process"] == {"enabled": True, "reason": None}
     assert response.json()["retry"]["enabled"] is False
     assert response.json()["cancel"] == {"enabled": True, "reason": None}
+    assert response.json()["edit_transcript"]["enabled"] is False
     assert response.json()["retry_attempts_remaining"] == 3
 
 
@@ -280,7 +285,8 @@ def test_jobs_list_accepts_search_query(monkeypatch):
     monkeypatch.setattr(jobs_api, "get_all_jobs", fake_get_all_jobs)
 
     response = client.get(
-        "/api/jobs/?search=interview&language=en&limit=10"
+        "/api/jobs/?search=interview&language=en"
+        "&audio_source=in_app_recording&limit=10"
         "&created_from=2026-06-01T00:00:00Z"
         "&created_to=2026-06-30T23:59:59Z"
     )
@@ -299,6 +305,7 @@ def test_jobs_list_accepts_search_query(monkeypatch):
     }
     assert calls[0]["search"] == "interview"
     assert calls[0]["language"] == "en"
+    assert calls[0]["audio_source"] == "in_app_recording"
     assert calls[0]["created_from"].year == 2026
     assert calls[0]["created_to"].year == 2026
 
@@ -363,6 +370,28 @@ def test_get_transcript_returns_text_and_metadata(monkeypatch):
         "character_count": 21,
         "word_count": 3,
     }
+
+
+def test_update_transcript_endpoint_allows_done_job_edit(monkeypatch):
+    edited_job = make_job(JobStatus.done)
+    edited_job["transcript_text"] = "Edited transcript"
+    edited_job["has_transcript"] = True
+    edited_job["transcript_preview"] = "Edited transcript"
+
+    monkeypatch.setattr(
+        jobs_api,
+        "update_job_transcript",
+        lambda job_id, transcript_text: edited_job,
+    )
+
+    response = client.patch(
+        "/api/jobs/1/transcript",
+        json={"transcript_text": "Edited transcript"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "done"
+    assert response.json()["transcript_text"] == "Edited transcript"
 
 
 def test_get_transcript_metadata_endpoint(monkeypatch):
@@ -734,6 +763,7 @@ def test_download_audio_returns_404_when_file_is_missing(monkeypatch):
 def test_upload_can_skip_auto_processing(monkeypatch):
     created_job = make_job(JobStatus.queued)
     process_calls = []
+    created_jobs = []
 
     async def fake_save_uploaded_file(file):
         return StoredFile(
@@ -746,18 +776,29 @@ def test_upload_can_skip_auto_processing(monkeypatch):
     def fake_process_job(job_id: int):
         process_calls.append(job_id)
 
+    def fake_create_job(job_data):
+        created_jobs.append(job_data)
+        return created_job
+
     monkeypatch.setattr(jobs_api, "save_uploaded_file", fake_save_uploaded_file)
-    monkeypatch.setattr(jobs_api, "create_job", lambda job_data: created_job)
+    monkeypatch.setattr(jobs_api, "create_job", fake_create_job)
     monkeypatch.setattr(jobs_api, "process_job", fake_process_job)
 
     response = client.post(
         "/api/jobs/upload",
         files={"file": ("interview.mp3", b"fake audio bytes", "audio/mpeg")},
-        data={"language": "en", "auto_process": "false"},
+        data={
+            "language": "en",
+            "audio_source": "in_app_recording",
+            "duration_seconds": "42",
+            "auto_process": "false",
+        },
     )
 
     assert response.status_code == 200
     assert response.json()["status"] == "queued"
+    assert created_jobs[0].audio_source == "in_app_recording"
+    assert created_jobs[0].duration_seconds == 42
     assert process_calls == []
 
 

@@ -16,6 +16,7 @@ from app.repositories.transcript_revision_repository import (
     list_transcript_revisions,
     save_transcript_revision,
 )
+from app.schemas.audio_source import AudioSource
 from app.schemas.job import JobCreate
 from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
@@ -38,6 +39,7 @@ ALLOWED_STATUS_TRANSITIONS = {
 }
 
 COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed, JobStatus.canceled}
+TRANSCRIPT_UPDATE_STATUSES = {JobStatus.processing, JobStatus.done}
 
 
 class InvalidJobStatusTransition(ConflictError):
@@ -78,6 +80,7 @@ class MaxProcessingAttemptsReached(ConflictError):
 def get_all_jobs(
     status: JobStatus | None = None,
     language: LanguageCode | None = None,
+    audio_source: AudioSource | None = None,
     search: str | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
@@ -89,6 +92,7 @@ def get_all_jobs(
     return list_jobs(
         status=status,
         language=language,
+        audio_source=audio_source,
         search=search,
         created_from=created_from,
         created_to=created_to,
@@ -281,6 +285,10 @@ def get_job_actions(job_id: int):
             can_cancel_job(job),
             get_cancel_disabled_reason(job),
         ),
+        "edit_transcript": build_action_state(
+            can_edit_transcript(job),
+            get_edit_transcript_disabled_reason(job),
+        ),
         "download_transcript": build_action_state(
             job["status"] == JobStatus.done and bool(job["transcript_text"]),
             "Transcript is only available after the job is done",
@@ -379,6 +387,8 @@ def create_job(job_data: JobCreate):
         "original_filename": job_data.original_filename,
         "file_size_bytes": job_data.file_size_bytes,
         "content_type": job_data.content_type,
+        "audio_source": job_data.audio_source,
+        "duration_seconds": job_data.duration_seconds,
         "language": job_data.language,
         "status": JobStatus.queued,
         "processing_attempts": 0,
@@ -505,8 +515,10 @@ def update_job_transcript(job_id: int, transcript_text: str):
     if job is None:
         return None
 
-    if job["status"] != JobStatus.processing:
+    if job["status"] not in TRANSCRIPT_UPDATE_STATUSES:
         raise InvalidJobTranscriptUpdate(job["status"])
+
+    previous_status = job["status"]
 
     job["transcript_text"] = transcript_text
     job["updated_at"] = datetime.now(UTC)
@@ -517,8 +529,8 @@ def update_job_transcript(job_id: int, transcript_text: str):
         save_transcript_revision(job_id, transcript_text)
         record_job_event(
             job_id,
-            JobEventType.transcript_updated,
-            "Transcript was saved",
+            get_transcript_update_event_type(previous_status),
+            get_transcript_update_event_message(previous_status),
         )
 
     return updated_job
@@ -564,6 +576,31 @@ def get_cancel_disabled_reason(job: dict) -> str:
         "Can only cancel queued or processing jobs, "
         f"current status is {job['status'].value}"
     )
+
+
+def can_edit_transcript(job: dict) -> bool:
+    return job["status"] == JobStatus.done and bool(job["transcript_text"])
+
+
+def get_edit_transcript_disabled_reason(job: dict) -> str:
+    if can_edit_transcript(job):
+        return ""
+
+    return "Transcript can only be edited after the job is done"
+
+
+def get_transcript_update_event_type(status: JobStatus) -> JobEventType:
+    if status == JobStatus.done:
+        return JobEventType.transcript_edited
+
+    return JobEventType.transcript_updated
+
+
+def get_transcript_update_event_message(status: JobStatus) -> str:
+    if status == JobStatus.done:
+        return "Transcript was edited"
+
+    return "Transcript was saved"
 
 
 def build_action_state(enabled: bool, disabled_reason: str) -> dict:
