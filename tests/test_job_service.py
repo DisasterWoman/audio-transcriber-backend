@@ -251,6 +251,23 @@ def test_get_job_transcript_metadata_returns_counts(monkeypatch):
     }
 
 
+def test_get_job_transcript_analysis_returns_summary(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Alice asks about Python.\n\nAlice likes Python."
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    analysis = job_service.get_job_transcript_analysis(1)
+
+    assert analysis["job_id"] == 1
+    assert analysis["word_count"] == 7
+    assert analysis["paragraph_count"] == 2
+    assert analysis["top_words"][:2] == [
+        {"word": "alice", "count": 2},
+        {"word": "python", "count": 2},
+    ]
+
+
 def test_search_job_transcript_returns_case_insensitive_matches(monkeypatch):
     stored_job = make_job(JobStatus.done)
     stored_job["transcript_text"] = "Alice asks a question. Later, alice answers."

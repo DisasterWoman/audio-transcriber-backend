@@ -56,6 +56,21 @@ class JobTranscriptMetadata(AppBaseModel):
     word_count: int = Field(ge=0)
 
 
+class JobTranscriptTopWord(AppBaseModel):
+    word: str
+    count: int = Field(ge=1)
+
+
+class JobTranscriptAnalysis(AppBaseModel):
+    job_id: int
+    character_count: int = Field(ge=0)
+    word_count: int = Field(ge=0)
+    paragraph_count: int = Field(ge=0)
+    estimated_reading_time_seconds: int = Field(ge=0)
+    unique_word_count: int = Field(ge=0)
+    top_words: list[JobTranscriptTopWord]
+
+
 class JobTranscriptSearchMatch(AppBaseModel):
     start_index: int = Field(ge=0)
     end_index: int = Field(ge=0)

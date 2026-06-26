@@ -17,6 +17,11 @@ from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 from app.services.file_storage import delete_stored_file, stored_file_exists
+from app.services.transcript_service import (
+    analyze_transcript,
+    get_transcript_metadata,
+    search_transcript,
+)
 
 ALLOWED_STATUS_TRANSITIONS = {
     JobStatus.queued: {JobStatus.processing, JobStatus.failed},
@@ -26,7 +31,6 @@ ALLOWED_STATUS_TRANSITIONS = {
 }
 
 COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed}
-TRANSCRIPT_SEARCH_CONTEXT_CHARS = 40
 
 
 class InvalidJobStatusTransition(ConflictError):
@@ -121,27 +125,31 @@ def get_job_transcript_metadata(job_id: int):
     }
 
 
+def get_job_transcript_analysis(job_id: int):
+    transcript = get_job_transcript(job_id)
+
+    if transcript is None:
+        return None
+
+    return {
+        "job_id": transcript["job_id"],
+        **analyze_transcript(transcript["transcript_text"]),
+    }
+
+
 def search_job_transcript(job_id: int, query: str, limit: int = 10):
     transcript = get_job_transcript(job_id)
 
     if transcript is None:
         return None
 
-    matches = find_transcript_matches(
-        transcript["transcript_text"],
-        query,
-        limit=limit,
-    )
-
     return {
         "job_id": transcript["job_id"],
-        "query": query,
-        "total_matches": count_transcript_matches(
+        **search_transcript(
             transcript["transcript_text"],
             query,
+            limit=limit,
         ),
-        "returned_matches": len(matches),
-        "matches": matches,
     }
 
 
@@ -446,72 +454,3 @@ def build_action_state(enabled: bool, disabled_reason: str) -> dict:
         "reason": None if enabled else disabled_reason,
     }
 
-
-def get_transcript_metadata(transcript_text: str) -> dict:
-    return {
-        "character_count": len(transcript_text),
-        "word_count": len(transcript_text.split()),
-    }
-
-
-def count_transcript_matches(transcript_text: str, query: str) -> int:
-    normalized_transcript = transcript_text.casefold()
-    normalized_query = query.casefold()
-    count = 0
-    start = 0
-
-    while True:
-        match_start = normalized_transcript.find(normalized_query, start)
-        if match_start == -1:
-            return count
-
-        count += 1
-        start = match_start + len(normalized_query)
-
-
-def find_transcript_matches(
-    transcript_text: str,
-    query: str,
-    limit: int = 10,
-) -> list[dict]:
-    normalized_transcript = transcript_text.casefold()
-    normalized_query = query.casefold()
-    matches = []
-    start = 0
-
-    while len(matches) < limit:
-        match_start = normalized_transcript.find(normalized_query, start)
-        if match_start == -1:
-            return matches
-
-        match_end = match_start + len(query)
-        matches.append(
-            {
-                "start_index": match_start,
-                "end_index": match_end,
-                "snippet": build_transcript_search_snippet(
-                    transcript_text,
-                    match_start,
-                    match_end,
-                ),
-            }
-        )
-        start = match_end
-
-    return matches
-
-
-def build_transcript_search_snippet(
-    transcript_text: str,
-    match_start: int,
-    match_end: int,
-) -> str:
-    snippet_start = max(match_start - TRANSCRIPT_SEARCH_CONTEXT_CHARS, 0)
-    snippet_end = min(match_end + TRANSCRIPT_SEARCH_CONTEXT_CHARS, len(transcript_text))
-    snippet = transcript_text[snippet_start:snippet_end].strip()
-    normalized_snippet = " ".join(snippet.split())
-
-    prefix = "..." if snippet_start > 0 else ""
-    suffix = "..." if snippet_end < len(transcript_text) else ""
-
-    return f"{prefix}{normalized_snippet}{suffix}"

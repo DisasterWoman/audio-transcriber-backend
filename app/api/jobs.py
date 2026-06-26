@@ -17,6 +17,7 @@ from app.schemas.job import (
     JobStatusUpdate,
     JobSummary,
     JobTranscript,
+    JobTranscriptAnalysis,
     JobTranscriptMetadata,
     JobTranscriptSearchResult,
     JobTranscriptUpdate,
@@ -50,6 +51,7 @@ from app.services.job_service import (
     get_job_status_detail,
     get_job_summary,
     get_job_transcript,
+    get_job_transcript_analysis,
     get_job_transcript_metadata,
     search_job_transcript,
     update_job_status,
@@ -148,6 +150,16 @@ def get_transcript_metadata(job_id: int):
         raise NotFoundError("Job not found")
 
     return metadata
+
+
+@router.get("/{job_id}/transcript/analysis", response_model=JobTranscriptAnalysis)
+def get_transcript_analysis(job_id: int):
+    analysis = get_job_transcript_analysis(job_id)
+
+    if analysis is None:
+        raise NotFoundError("Job not found")
+
+    return analysis
 
 
 @router.get("/{job_id}/transcript/search", response_model=JobTranscriptSearchResult)

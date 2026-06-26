@@ -381,6 +381,50 @@ def test_get_transcript_metadata_endpoint(monkeypatch):
     }
 
 
+def test_get_transcript_analysis_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_analysis",
+        lambda job_id: {
+            "job_id": job_id,
+            "character_count": 42,
+            "word_count": 6,
+            "paragraph_count": 2,
+            "estimated_reading_time_seconds": 2,
+            "unique_word_count": 4,
+            "top_words": [
+                {"word": "alice", "count": 2},
+                {"word": "python", "count": 2},
+            ],
+        },
+    )
+
+    response = client.get("/api/jobs/1/transcript/analysis")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "job_id": 1,
+        "character_count": 42,
+        "word_count": 6,
+        "paragraph_count": 2,
+        "estimated_reading_time_seconds": 2,
+        "unique_word_count": 4,
+        "top_words": [
+            {"word": "alice", "count": 2},
+            {"word": "python", "count": 2},
+        ],
+    }
+
+
+def test_get_transcript_analysis_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "get_job_transcript_analysis", lambda job_id: None)
+
+    response = client.get("/api/jobs/999/transcript/analysis")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
     monkeypatch.setattr(jobs_api, "get_job_transcript_metadata", lambda job_id: None)
 

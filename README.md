@@ -127,6 +127,7 @@ PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript/metadata
+GET   /api/jobs/{job_id}/transcript/analysis
 GET   /api/jobs/{job_id}/transcript/search
 GET   /api/jobs/{job_id}/transcript/download
 GET   /api/jobs/{job_id}/audio/download
@@ -295,6 +296,12 @@ Get transcript metadata:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript/metadata"
+```
+
+Get transcript analysis:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/transcript/analysis"
 ```
 
 Search inside a transcript:
