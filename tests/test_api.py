@@ -390,6 +390,70 @@ def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
     assert response.json()["error"]["message"] == "Job not found"
 
 
+def test_search_transcript_endpoint(monkeypatch):
+    calls = []
+
+    def fake_search_job_transcript(job_id, q, limit):
+        calls.append({"job_id": job_id, "q": q, "limit": limit})
+        return {
+            "job_id": job_id,
+            "query": q,
+            "total_matches": 1,
+            "returned_matches": 1,
+            "matches": [
+                {
+                    "start_index": 6,
+                    "end_index": 11,
+                    "snippet": "Hello Alice",
+                }
+            ],
+        }
+
+    monkeypatch.setattr(
+        jobs_api,
+        "search_job_transcript",
+        fake_search_job_transcript,
+    )
+
+    response = client.get("/api/jobs/1/transcript/search?q=alice&limit=5")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "job_id": 1,
+        "query": "alice",
+        "total_matches": 1,
+        "returned_matches": 1,
+        "matches": [
+            {
+                "start_index": 6,
+                "end_index": 11,
+                "snippet": "Hello Alice",
+            }
+        ],
+    }
+    assert calls == [{"job_id": 1, "q": "alice", "limit": 5}]
+
+
+def test_search_transcript_endpoint_rejects_empty_query():
+    response = client.get("/api/jobs/1/transcript/search?q=")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"
+
+
+def test_search_transcript_endpoint_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "search_job_transcript",
+        lambda job_id, q, limit: None,
+    )
+
+    response = client.get("/api/jobs/999/transcript/search?q=alice")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_download_transcript_returns_text_file(monkeypatch):
     monkeypatch.setattr(
         jobs_api,

@@ -56,6 +56,20 @@ class JobTranscriptMetadata(AppBaseModel):
     word_count: int = Field(ge=0)
 
 
+class JobTranscriptSearchMatch(AppBaseModel):
+    start_index: int = Field(ge=0)
+    end_index: int = Field(ge=0)
+    snippet: str
+
+
+class JobTranscriptSearchResult(AppBaseModel):
+    job_id: int
+    query: str
+    total_matches: int = Field(ge=0)
+    returned_matches: int = Field(ge=0)
+    matches: list[JobTranscriptSearchMatch]
+
+
 class JobActionState(AppBaseModel):
     enabled: bool
     reason: str | None = None

@@ -251,6 +251,45 @@ def test_get_job_transcript_metadata_returns_counts(monkeypatch):
     }
 
 
+def test_search_job_transcript_returns_case_insensitive_matches(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Alice asks a question. Later, alice answers."
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    result = job_service.search_job_transcript(1, "alice", limit=10)
+
+    assert result["job_id"] == 1
+    assert result["query"] == "alice"
+    assert result["total_matches"] == 2
+    assert result["returned_matches"] == 2
+    assert result["matches"] == [
+        {
+            "start_index": 0,
+            "end_index": 5,
+            "snippet": "Alice asks a question. Later, alice answers.",
+        },
+        {
+            "start_index": 30,
+            "end_index": 35,
+            "snippet": "Alice asks a question. Later, alice answers.",
+        },
+    ]
+
+
+def test_search_job_transcript_respects_limit(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "test one test two test three"
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    result = job_service.search_job_transcript(1, "test", limit=2)
+
+    assert result["total_matches"] == 3
+    assert result["returned_matches"] == 2
+    assert len(result["matches"]) == 2
+
+
 def test_get_events_for_job_returns_none_when_job_does_not_exist(monkeypatch):
     monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: None)
 
