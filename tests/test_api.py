@@ -571,6 +571,38 @@ def test_get_transcript_revision_returns_404_when_missing(monkeypatch):
     assert response.json()["error"]["message"] == "Transcript revision not found"
 
 
+def test_restore_transcript_revision_endpoint(monkeypatch):
+    restored_job = make_job(JobStatus.done)
+    restored_job["transcript_text"] = "Older transcript"
+    restored_job["has_transcript"] = True
+    restored_job["transcript_preview"] = "Older transcript"
+
+    monkeypatch.setattr(
+        jobs_api,
+        "restore_job_transcript_revision",
+        lambda job_id, version: restored_job,
+    )
+
+    response = client.post("/api/jobs/1/transcript/revisions/2/restore")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "done"
+    assert response.json()["transcript_text"] == "Older transcript"
+
+
+def test_restore_transcript_revision_returns_404_when_missing(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "restore_job_transcript_revision",
+        lambda job_id, version: None,
+    )
+
+    response = client.post("/api/jobs/1/transcript/revisions/999/restore")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Transcript revision not found"
+
+
 def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
     monkeypatch.setattr(jobs_api, "get_job_transcript_metadata", lambda job_id: None)
 

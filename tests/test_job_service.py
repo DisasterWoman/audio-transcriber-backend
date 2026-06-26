@@ -398,6 +398,62 @@ def test_get_job_transcript_revision_returns_specific_revision(monkeypatch):
     assert revision["transcript_text"] == "Hello transcript"
 
 
+def test_restore_job_transcript_revision_updates_transcript_and_records_history(
+    monkeypatch,
+):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "Current transcript"
+    saved_revisions = []
+    saved_events = []
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(
+        job_service,
+        "get_transcript_revision",
+        lambda job_id, version: {
+            "job_id": job_id,
+            "version": version,
+            "transcript_text": "Older transcript",
+        },
+    )
+    monkeypatch.setattr(job_service, "update_job", lambda job: job)
+    monkeypatch.setattr(
+        job_service,
+        "save_transcript_revision",
+        lambda job_id, transcript_text: saved_revisions.append(
+            (job_id, transcript_text)
+        ),
+    )
+    monkeypatch.setattr(
+        job_service,
+        "record_job_event",
+        lambda job_id, event_type, message=None: saved_events.append(
+            (job_id, event_type, message)
+        ),
+    )
+
+    job = job_service.restore_job_transcript_revision(1, version=2)
+
+    assert job["transcript_text"] == "Older transcript"
+    assert saved_revisions == [(1, "Older transcript")]
+    assert saved_events == [
+        (
+            1,
+            JobEventType.transcript_restored,
+            "Transcript was restored from revision 2",
+        )
+    ]
+
+
+def test_restore_job_transcript_revision_rejects_non_done_job(monkeypatch):
+    stored_job = make_job(JobStatus.processing)
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    with pytest.raises(job_service.InvalidJobTranscriptUpdate):
+        job_service.restore_job_transcript_revision(1, version=1)
+
+
 def test_search_job_transcript_returns_case_insensitive_matches(monkeypatch):
     stored_job = make_job(JobStatus.done)
     stored_job["transcript_text"] = "Alice asks a question. Later, alice answers."

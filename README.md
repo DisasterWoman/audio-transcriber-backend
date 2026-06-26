@@ -132,6 +132,7 @@ GET   /api/jobs/{job_id}/transcript/analysis
 GET   /api/jobs/{job_id}/transcript/paragraphs
 GET   /api/jobs/{job_id}/transcript/revisions
 GET   /api/jobs/{job_id}/transcript/revisions/{version}
+POST  /api/jobs/{job_id}/transcript/revisions/{version}/restore
 GET   /api/jobs/{job_id}/transcript/search
 GET   /api/jobs/{job_id}/transcript/download
 GET   /api/jobs/{job_id}/audio/download
@@ -201,7 +202,8 @@ full transcript is needed.
 
 Every saved transcript update creates a numbered transcript revision. Revision
 lists include previews and counts, while a single revision endpoint returns the
-full text for that version.
+full text for that version. Restoring a revision makes that older transcript the
+current transcript again and records a new revision for the restore.
 
 You can disable automatic processing per upload by sending:
 
@@ -345,6 +347,12 @@ Get one transcript revision:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript/revisions/1"
+```
+
+Restore a transcript revision:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/jobs/1/transcript/revisions/1/restore"
 ```
 
 Search inside a transcript:

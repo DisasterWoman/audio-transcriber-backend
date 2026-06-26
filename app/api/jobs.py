@@ -61,6 +61,7 @@ from app.services.job_service import (
     get_job_transcript_paragraphs,
     get_job_transcript_revision,
     get_job_transcript_revisions,
+    restore_job_transcript_revision,
     search_job_transcript,
     update_job_status,
     update_job_transcript,
@@ -225,6 +226,19 @@ def get_transcript_revision(job_id: int, version: int):
         raise NotFoundError("Transcript revision not found")
 
     return revision
+
+
+@router.post(
+    "/{job_id}/transcript/revisions/{version}/restore",
+    response_model=Job,
+)
+def restore_transcript_revision(job_id: int, version: int):
+    job = restore_job_transcript_revision(job_id, version)
+
+    if job is None:
+        raise NotFoundError("Transcript revision not found")
+
+    return job
 
 
 @router.get("/{job_id}/transcript/search", response_model=JobTranscriptSearchResult)

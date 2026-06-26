@@ -188,6 +188,36 @@ def get_job_transcript_revision(job_id: int, version: int):
     return get_transcript_revision(job_id, version)
 
 
+def restore_job_transcript_revision(job_id: int, version: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    if job["status"] != JobStatus.done:
+        raise InvalidJobTranscriptUpdate(job["status"])
+
+    revision = get_transcript_revision(job_id, version)
+
+    if revision is None:
+        return None
+
+    job["transcript_text"] = revision["transcript_text"]
+    job["updated_at"] = datetime.now(UTC)
+
+    updated_job = update_job(job)
+
+    if updated_job is not None:
+        save_transcript_revision(job_id, revision["transcript_text"])
+        record_job_event(
+            job_id,
+            JobEventType.transcript_restored,
+            f"Transcript was restored from revision {version}",
+        )
+
+    return updated_job
+
+
 def search_job_transcript(job_id: int, query: str, limit: int = 10):
     transcript = get_job_transcript(job_id)
 
