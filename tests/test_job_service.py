@@ -310,6 +310,28 @@ def test_get_job_transcript_analysis_returns_summary(monkeypatch):
     ]
 
 
+def test_get_job_transcript_paragraphs_returns_paginated_paragraphs(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    stored_job["transcript_text"] = "First paragraph.\n\nSecond paragraph."
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    paragraphs = job_service.get_job_transcript_paragraphs(1, limit=1, offset=1)
+
+    assert paragraphs["job_id"] == 1
+    assert paragraphs["total"] == 2
+    assert paragraphs["count"] == 1
+    assert paragraphs["items"] == [
+        {
+            "index": 1,
+            "start_index": 18,
+            "end_index": 35,
+            "text": "Second paragraph.",
+            "word_count": 2,
+        }
+    ]
+
+
 def test_search_job_transcript_returns_case_insensitive_matches(monkeypatch):
     stored_job = make_job(JobStatus.done)
     stored_job["transcript_text"] = "Alice asks a question. Later, alice answers."

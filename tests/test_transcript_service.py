@@ -1,7 +1,9 @@
 from app.services.transcript_service import (
     analyze_transcript,
     get_transcript_metadata,
+    paginate_transcript_paragraphs,
     search_transcript,
+    split_transcript_paragraphs,
 )
 
 
@@ -54,3 +56,46 @@ def test_search_transcript_returns_case_insensitive_limited_matches():
             "snippet": "Alice asks a question. Later, alice answers. Alice smiles.",
         },
     ]
+
+
+def test_split_transcript_paragraphs_preserves_indexes_and_counts_words():
+    paragraphs = split_transcript_paragraphs(
+        "First paragraph line one.\n"
+        "First paragraph line two.\n\n"
+        "Second paragraph."
+    )
+
+    assert paragraphs == [
+        {
+            "index": 0,
+            "start_index": 0,
+            "end_index": 51,
+            "text": "First paragraph line one.\nFirst paragraph line two.",
+            "word_count": 8,
+        },
+        {
+            "index": 1,
+            "start_index": 53,
+            "end_index": 70,
+            "text": "Second paragraph.",
+            "word_count": 2,
+        },
+    ]
+
+
+def test_paginate_transcript_paragraphs_returns_pagination_metadata():
+    result = paginate_transcript_paragraphs(
+        "One.\n\nTwo.\n\nThree.",
+        limit=1,
+        offset=1,
+    )
+
+    assert result["total"] == 3
+    assert result["count"] == 1
+    assert result["limit"] == 1
+    assert result["offset"] == 1
+    assert result["has_next"] is True
+    assert result["has_previous"] is True
+    assert result["next_offset"] == 2
+    assert result["previous_offset"] == 0
+    assert result["items"][0]["text"] == "Two."

@@ -58,6 +58,93 @@ def search_transcript(transcript_text: str, query: str, limit: int = 10) -> dict
     }
 
 
+def paginate_transcript_paragraphs(
+    transcript_text: str,
+    limit: int = 20,
+    offset: int = 0,
+) -> dict:
+    paragraphs = split_transcript_paragraphs(transcript_text)
+    total = len(paragraphs)
+    items = paragraphs[offset : offset + limit]
+    count = len(items)
+    next_offset = offset + limit if offset + limit < total else None
+    previous_offset = max(offset - limit, 0) if offset > 0 else None
+
+    return {
+        "items": items,
+        "total": total,
+        "count": count,
+        "limit": limit,
+        "offset": offset,
+        "has_next": next_offset is not None,
+        "has_previous": offset > 0,
+        "next_offset": next_offset,
+        "previous_offset": previous_offset,
+    }
+
+
+def split_transcript_paragraphs(transcript_text: str) -> list[dict]:
+    paragraphs = []
+    paragraph_lines = []
+    paragraph_start: int | None = None
+    cursor = 0
+
+    for line in transcript_text.splitlines(keepends=True):
+        line_start = cursor
+        line_end = cursor + len(line)
+        cursor = line_end
+
+        if line.strip():
+            if paragraph_start is None:
+                paragraph_start = line_start
+            paragraph_lines.append(line)
+            continue
+
+        if paragraph_start is not None:
+            paragraphs.append(
+                build_transcript_paragraph(
+                    len(paragraphs),
+                    paragraph_start,
+                    line_start,
+                    paragraph_lines,
+                )
+            )
+            paragraph_lines = []
+            paragraph_start = None
+
+    if paragraph_start is not None:
+        paragraphs.append(
+            build_transcript_paragraph(
+                len(paragraphs),
+                paragraph_start,
+                len(transcript_text),
+                paragraph_lines,
+            )
+        )
+
+    return paragraphs
+
+
+def build_transcript_paragraph(
+    index: int,
+    start_index: int,
+    end_index: int,
+    lines: list[str],
+) -> dict:
+    raw_text = "".join(lines)
+    leading_trim = len(raw_text) - len(raw_text.lstrip())
+    trailing_trim = len(raw_text) - len(raw_text.rstrip())
+    text = raw_text.strip()
+
+    return {
+        "index": index,
+        "start_index": start_index + leading_trim,
+        "end_index": end_index - trailing_trim,
+        "text": text,
+        "word_count": len(get_transcript_words(text)),
+    }
+
+
 def get_transcript_words(transcript_text: str) -> list[str]:
     return transcript_text.split()
 

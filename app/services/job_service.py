@@ -20,6 +20,7 @@ from app.services.file_storage import delete_stored_file, stored_file_exists
 from app.services.transcript_service import (
     analyze_transcript,
     get_transcript_metadata,
+    paginate_transcript_paragraphs,
     search_transcript,
 )
 
@@ -135,6 +136,22 @@ def get_job_transcript_analysis(job_id: int):
     return {
         "job_id": transcript["job_id"],
         **analyze_transcript(transcript["transcript_text"]),
+    }
+
+
+def get_job_transcript_paragraphs(job_id: int, limit: int = 20, offset: int = 0):
+    transcript = get_job_transcript(job_id)
+
+    if transcript is None:
+        return None
+
+    return {
+        "job_id": transcript["job_id"],
+        **paginate_transcript_paragraphs(
+            transcript["transcript_text"],
+            limit=limit,
+            offset=offset,
+        ),
     }
 
 

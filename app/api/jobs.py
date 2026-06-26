@@ -19,6 +19,7 @@ from app.schemas.job import (
     JobTranscript,
     JobTranscriptAnalysis,
     JobTranscriptMetadata,
+    JobTranscriptParagraphList,
     JobTranscriptSearchResult,
     JobTranscriptUpdate,
 )
@@ -54,6 +55,7 @@ from app.services.job_service import (
     get_job_transcript,
     get_job_transcript_analysis,
     get_job_transcript_metadata,
+    get_job_transcript_paragraphs,
     search_job_transcript,
     update_job_status,
     update_job_transcript,
@@ -161,6 +163,27 @@ def get_transcript_analysis(job_id: int):
         raise NotFoundError("Job not found")
 
     return analysis
+
+
+@router.get(
+    "/{job_id}/transcript/paragraphs",
+    response_model=JobTranscriptParagraphList,
+)
+def get_transcript_paragraphs(
+    job_id: int,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+):
+    paragraphs = get_job_transcript_paragraphs(
+        job_id,
+        limit=limit,
+        offset=offset,
+    )
+
+    if paragraphs is None:
+        raise NotFoundError("Job not found")
+
+    return paragraphs
 
 
 @router.get("/{job_id}/transcript/search", response_model=JobTranscriptSearchResult)

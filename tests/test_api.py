@@ -430,6 +430,60 @@ def test_get_transcript_analysis_returns_404_when_job_is_missing(monkeypatch):
     assert response.json()["error"]["message"] == "Job not found"
 
 
+def test_get_transcript_paragraphs_endpoint(monkeypatch):
+    calls = []
+
+    def fake_get_job_transcript_paragraphs(job_id, limit, offset):
+        calls.append({"job_id": job_id, "limit": limit, "offset": offset})
+        return {
+            "job_id": job_id,
+            "items": [
+                {
+                    "index": 1,
+                    "start_index": 18,
+                    "end_index": 35,
+                    "text": "Second paragraph.",
+                    "word_count": 2,
+                }
+            ],
+            "total": 2,
+            "count": 1,
+            "limit": limit,
+            "offset": offset,
+            "has_next": False,
+            "has_previous": True,
+            "next_offset": None,
+            "previous_offset": 0,
+        }
+
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_paragraphs",
+        fake_get_job_transcript_paragraphs,
+    )
+
+    response = client.get("/api/jobs/1/transcript/paragraphs?limit=1&offset=1")
+
+    assert response.status_code == 200
+    assert response.json()["job_id"] == 1
+    assert response.json()["total"] == 2
+    assert response.json()["items"][0]["text"] == "Second paragraph."
+    assert calls == [{"job_id": 1, "limit": 1, "offset": 1}]
+
+
+def test_get_transcript_paragraphs_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_paragraphs",
+        lambda job_id, limit, offset: None,
+    )
+
+    response = client.get("/api/jobs/999/transcript/paragraphs")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
+
+
 def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
     monkeypatch.setattr(jobs_api, "get_job_transcript_metadata", lambda job_id: None)
 
