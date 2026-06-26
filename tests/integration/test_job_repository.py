@@ -124,12 +124,14 @@ def test_repository_counts_jobs_by_status():
     job_repository.save_job(make_job("integration-queued.mp3", JobStatus.queued))
     job_repository.save_job(make_job("integration-done.mp3", JobStatus.done))
     job_repository.save_job(make_job("integration-failed.mp3", JobStatus.failed))
+    job_repository.save_job(make_job("integration-canceled.mp3", JobStatus.canceled))
 
     counts = job_repository.get_job_status_counts()
 
     assert counts[JobStatus.queued] >= 1
     assert counts[JobStatus.done] >= 1
     assert counts[JobStatus.failed] >= 1
+    assert counts[JobStatus.canceled] >= 1
     assert counts[JobStatus.processing] >= 0
 
 

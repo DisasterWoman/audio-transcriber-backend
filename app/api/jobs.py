@@ -41,6 +41,7 @@ from app.services.job_processing import (
     start_job_processing,
 )
 from app.services.job_service import (
+    cancel_job_by_id,
     create_job,
     delete_job_by_id,
     get_all_jobs,
@@ -282,6 +283,16 @@ def retry_job(job_id: int, background_tasks: BackgroundTasks):
         raise NotFoundError("Job not found")
 
     background_tasks.add_task(process_job, job_id)
+
+    return job
+
+
+@router.post("/{job_id}/cancel", response_model=Job)
+def cancel_job(job_id: int):
+    job = cancel_job_by_id(job_id)
+
+    if job is None:
+        raise NotFoundError("Job not found")
 
     return job
 

@@ -142,6 +142,43 @@ def test_retry_failed_job_rejects_non_failed_job(monkeypatch):
         job_service.retry_failed_job(1)
 
 
+def test_cancel_job_marks_queued_job_as_canceled(monkeypatch):
+    stored_job = make_job(JobStatus.queued)
+    saved_events = []
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(job_service, "update_job", lambda job: job)
+    monkeypatch.setattr(
+        job_service,
+        "record_job_event",
+        lambda job_id, event_type, message=None: saved_events.append(
+            (job_id, event_type, message)
+        ),
+    )
+
+    job = job_service.cancel_job_by_id(1)
+
+    assert job["status"] == JobStatus.canceled
+    assert job["completed_at"] is not None
+    assert saved_events == [
+        (
+            1,
+            JobEventType.status_changed,
+            "Status changed from queued to canceled",
+        ),
+        (1, JobEventType.job_canceled, "Job was canceled"),
+    ]
+
+
+def test_cancel_job_rejects_done_job(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+
+    with pytest.raises(job_service.InvalidJobStatusTransition):
+        job_service.cancel_job_by_id(1)
+
+
 def test_get_job_actions_for_queued_job(monkeypatch):
     stored_job = make_job(JobStatus.queued)
 
@@ -152,6 +189,7 @@ def test_get_job_actions_for_queued_job(monkeypatch):
 
     assert actions["process"] == {"enabled": True, "reason": None}
     assert actions["retry"]["enabled"] is False
+    assert actions["cancel"] == {"enabled": True, "reason": None}
     assert actions["download_transcript"]["enabled"] is False
     assert actions["download_audio"] == {"enabled": True, "reason": None}
     assert actions["retry_attempts_remaining"] == 3
@@ -170,6 +208,10 @@ def test_get_job_actions_for_failed_job_at_retry_limit(monkeypatch):
     assert actions["retry"] == {
         "enabled": False,
         "reason": "Maximum processing attempts reached",
+    }
+    assert actions["cancel"] == {
+        "enabled": False,
+        "reason": "Can only cancel queued or processing jobs, current status is failed",
     }
     assert actions["download_audio"] == {
         "enabled": False,

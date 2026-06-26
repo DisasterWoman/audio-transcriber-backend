@@ -6,7 +6,7 @@ from app.schemas.language import LanguageCode
 
 def make_job(status: JobStatus = JobStatus.queued) -> dict:
     now = datetime.now(UTC)
-    is_terminal = status in {JobStatus.done, JobStatus.failed}
+    is_terminal = status in {JobStatus.done, JobStatus.failed, JobStatus.canceled}
 
     return {
         "id": 1,

@@ -35,3 +35,26 @@ def test_process_job_fails_when_stored_file_is_missing(monkeypatch):
             "error_message": "Stored audio file is missing: stored.mp3",
         }
     ]
+
+
+def test_process_job_skips_canceled_job(monkeypatch):
+    stored_job = make_job(JobStatus.canceled)
+    attempts = []
+    updates = []
+
+    monkeypatch.setattr(job_processing, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(
+        job_processing,
+        "record_job_processing_attempt",
+        lambda job_id: attempts.append(job_id),
+    )
+    monkeypatch.setattr(
+        job_processing,
+        "update_job_status",
+        lambda job_id, status, error_message=None: updates.append(status),
+    )
+
+    job_processing.process_job(1)
+
+    assert attempts == []
+    assert updates == []

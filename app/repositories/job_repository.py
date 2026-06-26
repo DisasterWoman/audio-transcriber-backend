@@ -9,7 +9,7 @@ from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
 from app.schemas.sorting import JobSortField, SortDirection
 
-TERMINAL_STATUSES = {JobStatus.done, JobStatus.failed}
+TERMINAL_STATUSES = {JobStatus.done, JobStatus.failed, JobStatus.canceled}
 TRANSCRIPT_PREVIEW_LENGTH = 120
 FAILURE_SUMMARY_LENGTH = 160
 MISSING_FAILURE_MESSAGE = "Job failed without a recorded error message"

@@ -123,6 +123,7 @@ POST  /api/jobs/
 POST  /api/jobs/upload
 POST  /api/jobs/{job_id}/process
 POST  /api/jobs/{job_id}/retry
+POST  /api/jobs/{job_id}/cancel
 PATCH /api/jobs/{job_id}/status
 PATCH /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript
@@ -157,6 +158,17 @@ If processing fails, the job becomes `failed` and can be retried:
 ```text
 failed -> queued -> processing -> done
 ```
+
+Queued or processing jobs can also be canceled:
+
+```text
+queued -> canceled
+processing -> canceled
+```
+
+Canceled jobs are terminal, but they are not treated as failures. This lets the
+frontend show the difference between "the provider failed" and "the user stopped
+this job on purpose".
 
 Each processing run increments `processing_attempts`. This makes failures easier
 to debug later because the API can show whether a job failed once or many times.
@@ -253,6 +265,12 @@ Get available actions for a job:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/actions"
+```
+
+Cancel a queued or processing job:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/jobs/1/cancel"
 ```
 
 Get lightweight status for polling:

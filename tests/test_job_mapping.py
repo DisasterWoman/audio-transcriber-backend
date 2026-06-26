@@ -125,6 +125,32 @@ def test_model_to_job_adds_failure_summary_for_failed_job():
     assert job["failure_summary"] == "Provider timeout while transcribing audio"
 
 
+def test_model_to_job_marks_canceled_job_as_terminal_without_failure_summary():
+    now = datetime(2026, 6, 25, 10, 0, tzinfo=UTC)
+
+    job_model = JobModel(
+        id=1,
+        filename="stored.mp3",
+        original_filename="interview.mp3",
+        file_size_bytes=123,
+        content_type="audio/mpeg",
+        language=LanguageCode.en.value,
+        status=JobStatus.canceled.value,
+        processing_attempts=0,
+        created_at=now,
+        updated_at=now,
+        started_at=None,
+        completed_at=now,
+        error_message=None,
+        transcript_text=None,
+    )
+
+    job = model_to_job(job_model)
+
+    assert job["is_terminal"] is True
+    assert job["failure_summary"] is None
+
+
 def test_model_to_job_truncates_long_failure_summary():
     now = datetime(2026, 6, 25, 10, 0, tzinfo=UTC)
 

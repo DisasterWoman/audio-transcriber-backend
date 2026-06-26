@@ -6,3 +6,4 @@ class JobStatus(str, Enum):
     processing = "processing"
     done = "done"
     failed = "failed"
+    canceled = "canceled"

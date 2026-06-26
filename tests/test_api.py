@@ -47,6 +47,7 @@ def test_job_stats_endpoint(monkeypatch):
             "processing": 1,
             "done": 1,
             "failed": 1,
+            "canceled": 0,
         },
     )
 
@@ -59,6 +60,7 @@ def test_job_stats_endpoint(monkeypatch):
         "processing": 1,
         "done": 1,
         "failed": 1,
+        "canceled": 0,
     }
 
 
@@ -77,6 +79,7 @@ def test_job_summary_endpoint(monkeypatch):
                 "processing": 0,
                 "done": 1,
                 "failed": 0,
+                "canceled": 0,
             },
             "recent_jobs": {
                 "items": [job],
@@ -119,6 +122,7 @@ def test_job_actions_endpoint(monkeypatch):
             "job_id": job_id,
             "process": {"enabled": True, "reason": None},
             "retry": {"enabled": False, "reason": "Can only retry failed jobs"},
+            "cancel": {"enabled": True, "reason": None},
             "download_transcript": {
                 "enabled": False,
                 "reason": "Transcript is only available after the job is done",
@@ -136,6 +140,7 @@ def test_job_actions_endpoint(monkeypatch):
     assert response.json()["job_id"] == 1
     assert response.json()["process"] == {"enabled": True, "reason": None}
     assert response.json()["retry"]["enabled"] is False
+    assert response.json()["cancel"] == {"enabled": True, "reason": None}
     assert response.json()["retry_attempts_remaining"] == 3
 
 
@@ -603,6 +608,27 @@ def test_process_endpoint_schedules_background_task(monkeypatch):
     assert response.status_code == 200
     assert response.json()["status"] == "processing"
     assert process_calls == [1]
+
+
+def test_cancel_endpoint_marks_job_as_canceled(monkeypatch):
+    canceled_job = make_job(JobStatus.canceled)
+
+    monkeypatch.setattr(jobs_api, "cancel_job_by_id", lambda job_id: canceled_job)
+
+    response = client.post("/api/jobs/1/cancel")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "canceled"
+    assert response.json()["is_terminal"] is True
+
+
+def test_cancel_endpoint_returns_404_when_job_is_missing(monkeypatch):
+    monkeypatch.setattr(jobs_api, "cancel_job_by_id", lambda job_id: None)
+
+    response = client.post("/api/jobs/999/cancel")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Job not found"
 
 
 def test_delete_job_returns_no_content(monkeypatch):

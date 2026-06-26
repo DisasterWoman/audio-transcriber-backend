@@ -24,13 +24,14 @@ from app.services.transcript_service import (
 )
 
 ALLOWED_STATUS_TRANSITIONS = {
-    JobStatus.queued: {JobStatus.processing, JobStatus.failed},
-    JobStatus.processing: {JobStatus.done, JobStatus.failed},
+    JobStatus.queued: {JobStatus.processing, JobStatus.failed, JobStatus.canceled},
+    JobStatus.processing: {JobStatus.done, JobStatus.failed, JobStatus.canceled},
     JobStatus.done: set(),
     JobStatus.failed: set(),
+    JobStatus.canceled: set(),
 }
 
-COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed}
+COMPLETED_STATUSES = {JobStatus.done, JobStatus.failed, JobStatus.canceled}
 
 
 class InvalidJobStatusTransition(ConflictError):
@@ -162,6 +163,7 @@ def get_job_stats() -> dict:
         "processing": counts[JobStatus.processing],
         "done": counts[JobStatus.done],
         "failed": counts[JobStatus.failed],
+        "canceled": counts[JobStatus.canceled],
     }
 
 
@@ -194,6 +196,10 @@ def get_job_actions(job_id: int):
         "retry": build_action_state(
             job["status"] == JobStatus.failed and attempts_remaining > 0,
             get_retry_disabled_reason(job, attempts_remaining),
+        ),
+        "cancel": build_action_state(
+            can_cancel_job(job),
+            get_cancel_disabled_reason(job),
         ),
         "download_transcript": build_action_state(
             job["status"] == JobStatus.done and bool(job["transcript_text"]),
@@ -266,6 +272,23 @@ def delete_job_by_id(job_id: int) -> bool:
         delete_stored_file(job["filename"])
 
     return deleted
+
+
+def cancel_job_by_id(job_id: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    if not can_cancel_job(job):
+        raise InvalidJobStatusTransition(job["status"], JobStatus.canceled)
+
+    canceled_job = update_job_status(job_id, JobStatus.canceled)
+
+    if canceled_job is not None:
+        record_job_event(job_id, JobEventType.job_canceled, "Job was canceled")
+
+    return canceled_job
 
 
 def create_job(job_data: JobCreate):
@@ -448,9 +471,22 @@ def get_retry_disabled_reason(job: dict, attempts_remaining: int) -> str:
     return ""
 
 
+def can_cancel_job(job: dict) -> bool:
+    return job["status"] in {JobStatus.queued, JobStatus.processing}
+
+
+def get_cancel_disabled_reason(job: dict) -> str:
+    if can_cancel_job(job):
+        return ""
+
+    return (
+        "Can only cancel queued or processing jobs, "
+        f"current status is {job['status'].value}"
+    )
+
+
 def build_action_state(enabled: bool, disabled_reason: str) -> dict:
     return {
         "enabled": enabled,
         "reason": None if enabled else disabled_reason,
     }
-

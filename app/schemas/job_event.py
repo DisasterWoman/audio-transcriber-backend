@@ -14,6 +14,7 @@ class JobEventType(str, Enum):
     transcript_updated = "transcript_updated"
     processing_attempt_started = "processing_attempt_started"
     job_retried = "job_retried"
+    job_canceled = "job_canceled"
 
 
 class JobEventCreate(AppBaseModel):

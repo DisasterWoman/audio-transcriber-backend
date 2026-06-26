@@ -94,6 +94,7 @@ class JobActions(AppBaseModel):
     job_id: int
     process: JobActionState
     retry: JobActionState
+    cancel: JobActionState
     download_transcript: JobActionState
     download_audio: JobActionState
     processing_attempts: int = Field(ge=0)
@@ -198,6 +199,7 @@ class JobStats(AppBaseModel):
     processing: int = Field(ge=0)
     done: int = Field(ge=0)
     failed: int = Field(ge=0)
+    canceled: int = Field(ge=0)
 
 
 class JobSummary(AppBaseModel):
