@@ -11,6 +11,11 @@ from app.repositories.job_repository import (
     save_job,
     update_job,
 )
+from app.repositories.transcript_revision_repository import (
+    get_transcript_revision,
+    list_transcript_revisions,
+    save_transcript_revision,
+)
 from app.schemas.job import JobCreate
 from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
@@ -153,6 +158,34 @@ def get_job_transcript_paragraphs(job_id: int, limit: int = 20, offset: int = 0)
             offset=offset,
         ),
     }
+
+
+def get_job_transcript_revisions(
+    job_id: int,
+    limit: int = 50,
+    offset: int = 0,
+    sort_direction: SortDirection = SortDirection.desc,
+):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    return list_transcript_revisions(
+        job_id,
+        limit=limit,
+        offset=offset,
+        sort_direction=sort_direction,
+    )
+
+
+def get_job_transcript_revision(job_id: int, version: int):
+    job = get_job_by_id(job_id)
+
+    if job is None:
+        return None
+
+    return get_transcript_revision(job_id, version)
 
 
 def search_job_transcript(job_id: int, query: str, limit: int = 10):
@@ -451,6 +484,7 @@ def update_job_transcript(job_id: int, transcript_text: str):
     updated_job = update_job(job)
 
     if updated_job is not None:
+        save_transcript_revision(job_id, transcript_text)
         record_job_event(
             job_id,
             JobEventType.transcript_updated,

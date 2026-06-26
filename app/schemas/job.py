@@ -43,6 +43,24 @@ class JobTranscriptUpdate(AppBaseModel):
     transcript_text: str = Field(min_length=1)
 
 
+class JobTranscriptRevisionSummary(AppBaseModel):
+    id: int
+    job_id: int
+    version: int = Field(ge=1)
+    created_at: datetime
+    character_count: int = Field(ge=0)
+    word_count: int = Field(ge=0)
+    transcript_preview: str | None
+
+
+class JobTranscriptRevision(JobTranscriptRevisionSummary):
+    transcript_text: str
+
+
+class JobTranscriptRevisionList(PaginationMeta):
+    items: list[JobTranscriptRevisionSummary]
+
+
 class JobTranscript(AppBaseModel):
     job_id: int
     transcript_text: str

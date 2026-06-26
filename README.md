@@ -130,6 +130,8 @@ GET   /api/jobs/{job_id}/transcript
 GET   /api/jobs/{job_id}/transcript/metadata
 GET   /api/jobs/{job_id}/transcript/analysis
 GET   /api/jobs/{job_id}/transcript/paragraphs
+GET   /api/jobs/{job_id}/transcript/revisions
+GET   /api/jobs/{job_id}/transcript/revisions/{version}
 GET   /api/jobs/{job_id}/transcript/search
 GET   /api/jobs/{job_id}/transcript/download
 GET   /api/jobs/{job_id}/audio/download
@@ -196,6 +198,10 @@ checking the raw text itself.
 Job list and summary responses include `transcript_preview`, but do not include
 the full `transcript_text`. Fetch the job detail or transcript endpoint when the
 full transcript is needed.
+
+Every saved transcript update creates a numbered transcript revision. Revision
+lists include previews and counts, while a single revision endpoint returns the
+full text for that version.
 
 You can disable automatic processing per upload by sending:
 
@@ -327,6 +333,18 @@ Get paginated transcript paragraphs:
 
 ```bash
 curl "http://127.0.0.1:8000/api/jobs/1/transcript/paragraphs?limit=20&offset=0"
+```
+
+List transcript revisions:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/transcript/revisions?limit=20&offset=0"
+```
+
+Get one transcript revision:
+
+```bash
+curl "http://127.0.0.1:8000/api/jobs/1/transcript/revisions/1"
 ```
 
 Search inside a transcript:

@@ -1,11 +1,15 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from app.db.session import SessionLocal
-from app.models.job import JobEventModel, JobModel
-from app.repositories import job_event_repository, job_repository
+from app.models.job import JobEventModel, JobModel, TranscriptRevisionModel
+from app.repositories import (
+    job_event_repository,
+    job_repository,
+    transcript_revision_repository,
+)
 from app.schemas.job_event import JobEventCreate, JobEventType
 from app.schemas.job_status import JobStatus
 from app.schemas.language import LanguageCode
@@ -16,6 +20,15 @@ pytestmark = pytest.mark.integration
 
 def cleanup_integration_jobs() -> None:
     with SessionLocal() as session:
+        session.execute(
+            delete(TranscriptRevisionModel).where(
+                TranscriptRevisionModel.job_id.in_(
+                    select(JobModel.id).where(
+                        JobModel.original_filename.like("integration-%")
+                    )
+                )
+            )
+        )
         session.execute(
             delete(JobEventModel).where(
                 JobEventModel.message.like("integration-%")
@@ -246,3 +259,42 @@ def test_repository_filters_paginates_and_sorts_job_events():
     assert events["previous_offset"] is None
     assert [event["id"] for event in events["items"]] == [second_status_event["id"]]
     assert first_status_event["id"] != second_status_event["id"]
+
+
+def test_repository_saves_lists_gets_and_cascades_transcript_revisions():
+    saved_job = job_repository.save_job(make_job("integration-revisions.mp3"))
+
+    first_revision = transcript_revision_repository.save_transcript_revision(
+        saved_job["id"],
+        "integration first transcript",
+    )
+    second_revision = transcript_revision_repository.save_transcript_revision(
+        saved_job["id"],
+        "integration second transcript",
+    )
+
+    revisions = transcript_revision_repository.list_transcript_revisions(
+        saved_job["id"],
+        limit=10,
+        offset=0,
+        sort_direction=SortDirection.asc,
+    )
+    revision = transcript_revision_repository.get_transcript_revision(
+        saved_job["id"],
+        version=2,
+    )
+
+    assert first_revision["version"] == 1
+    assert second_revision["version"] == 2
+    assert revisions["total"] == 2
+    assert [item["version"] for item in revisions["items"]] == [1, 2]
+    assert revisions["items"][0]["transcript_preview"] == "integration first transcript"
+    assert revision["transcript_text"] == "integration second transcript"
+
+    job_repository.delete_job(saved_job["id"])
+
+    revisions_after_delete = transcript_revision_repository.list_transcript_revisions(
+        saved_job["id"]
+    )
+
+    assert revisions_after_delete["total"] == 0

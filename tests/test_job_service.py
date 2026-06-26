@@ -243,9 +243,17 @@ def test_get_job_status_detail_returns_lightweight_status(monkeypatch):
 def test_update_job_transcript_records_event(monkeypatch):
     stored_job = make_job(JobStatus.processing)
     saved_events = []
+    saved_revisions = []
 
     monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
     monkeypatch.setattr(job_service, "update_job", lambda job: job)
+    monkeypatch.setattr(
+        job_service,
+        "save_transcript_revision",
+        lambda job_id, transcript_text: saved_revisions.append(
+            (job_id, transcript_text)
+        ),
+    )
     monkeypatch.setattr(
         job_service,
         "record_job_event",
@@ -257,6 +265,7 @@ def test_update_job_transcript_records_event(monkeypatch):
     job = job_service.update_job_transcript(1, "Hello transcript")
 
     assert job["transcript_text"] == "Hello transcript"
+    assert saved_revisions == [(1, "Hello transcript")]
     assert saved_events == [
         (1, JobEventType.transcript_updated, "Transcript was saved")
     ]
@@ -330,6 +339,63 @@ def test_get_job_transcript_paragraphs_returns_paginated_paragraphs(monkeypatch)
             "word_count": 2,
         }
     ]
+
+
+def test_get_job_transcript_revisions_returns_revision_history(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+    calls = []
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(
+        job_service,
+        "list_transcript_revisions",
+        lambda job_id, **kwargs: calls.append({"job_id": job_id, **kwargs})
+        or {
+            "items": [],
+            "total": 0,
+            "count": 0,
+            "limit": kwargs["limit"],
+            "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
+        },
+    )
+
+    revisions = job_service.get_job_transcript_revisions(1, limit=10, offset=5)
+
+    assert revisions["limit"] == 10
+    assert revisions["offset"] == 5
+    assert calls == [
+        {
+            "job_id": 1,
+            "limit": 10,
+            "offset": 5,
+            "sort_direction": job_service.SortDirection.desc,
+        }
+    ]
+
+
+def test_get_job_transcript_revision_returns_specific_revision(monkeypatch):
+    stored_job = make_job(JobStatus.done)
+
+    monkeypatch.setattr(job_service, "get_job_by_id", lambda job_id: stored_job)
+    monkeypatch.setattr(
+        job_service,
+        "get_transcript_revision",
+        lambda job_id, version: {
+            "job_id": job_id,
+            "version": version,
+            "transcript_text": "Hello transcript",
+        },
+    )
+
+    revision = job_service.get_job_transcript_revision(1, version=2)
+
+    assert revision["job_id"] == 1
+    assert revision["version"] == 2
+    assert revision["transcript_text"] == "Hello transcript"
 
 
 def test_search_job_transcript_returns_case_insensitive_matches(monkeypatch):

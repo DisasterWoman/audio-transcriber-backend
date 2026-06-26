@@ -484,6 +484,93 @@ def test_get_transcript_paragraphs_returns_404_when_job_is_missing(monkeypatch):
     assert response.json()["error"]["message"] == "Job not found"
 
 
+def test_get_transcript_revisions_endpoint(monkeypatch):
+    calls = []
+
+    def fake_get_job_transcript_revisions(job_id, **kwargs):
+        calls.append({"job_id": job_id, **kwargs})
+        return {
+            "items": [
+                {
+                    "id": 1,
+                    "job_id": job_id,
+                    "version": 2,
+                    "created_at": "2026-06-26T12:00:00Z",
+                    "character_count": 16,
+                    "word_count": 2,
+                    "transcript_preview": "Updated transcript",
+                }
+            ],
+            "total": 1,
+            "count": 1,
+            "limit": kwargs["limit"],
+            "offset": kwargs["offset"],
+            "has_next": False,
+            "has_previous": False,
+            "next_offset": None,
+            "previous_offset": None,
+        }
+
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_revisions",
+        fake_get_job_transcript_revisions,
+    )
+
+    response = client.get(
+        "/api/jobs/1/transcript/revisions?limit=10&offset=0"
+        "&sort_direction=asc"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"][0]["version"] == 2
+    assert response.json()["items"][0]["transcript_preview"] == "Updated transcript"
+    assert calls == [
+        {
+            "job_id": 1,
+            "limit": 10,
+            "offset": 0,
+            "sort_direction": "asc",
+        }
+    ]
+
+
+def test_get_transcript_revision_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_revision",
+        lambda job_id, version: {
+            "id": 1,
+            "job_id": job_id,
+            "version": version,
+            "created_at": "2026-06-26T12:00:00Z",
+            "character_count": 16,
+            "word_count": 2,
+            "transcript_preview": "Updated transcript",
+            "transcript_text": "Updated transcript",
+        },
+    )
+
+    response = client.get("/api/jobs/1/transcript/revisions/2")
+
+    assert response.status_code == 200
+    assert response.json()["version"] == 2
+    assert response.json()["transcript_text"] == "Updated transcript"
+
+
+def test_get_transcript_revision_returns_404_when_missing(monkeypatch):
+    monkeypatch.setattr(
+        jobs_api,
+        "get_job_transcript_revision",
+        lambda job_id, version: None,
+    )
+
+    response = client.get("/api/jobs/1/transcript/revisions/999")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "Transcript revision not found"
+
+
 def test_get_transcript_metadata_returns_404_when_job_is_missing(monkeypatch):
     monkeypatch.setattr(jobs_api, "get_job_transcript_metadata", lambda job_id: None)
 

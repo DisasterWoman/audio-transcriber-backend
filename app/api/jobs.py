@@ -20,11 +20,14 @@ from app.schemas.job import (
     JobTranscriptAnalysis,
     JobTranscriptMetadata,
     JobTranscriptParagraphList,
+    JobTranscriptRevision,
+    JobTranscriptRevisionList,
     JobTranscriptSearchResult,
     JobTranscriptUpdate,
 )
 from app.schemas.job_event import JobEventList, JobEventListQuery
 from app.schemas.language import LanguageCode
+from app.schemas.sorting import SortDirection
 from app.services.file_storage import (
     generate_stored_filename,
     get_stored_file_path,
@@ -56,6 +59,8 @@ from app.services.job_service import (
     get_job_transcript_analysis,
     get_job_transcript_metadata,
     get_job_transcript_paragraphs,
+    get_job_transcript_revision,
+    get_job_transcript_revisions,
     search_job_transcript,
     update_job_status,
     update_job_transcript,
@@ -184,6 +189,42 @@ def get_transcript_paragraphs(
         raise NotFoundError("Job not found")
 
     return paragraphs
+
+
+@router.get(
+    "/{job_id}/transcript/revisions",
+    response_model=JobTranscriptRevisionList,
+)
+def get_transcript_revisions(
+    job_id: int,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    sort_direction: SortDirection = SortDirection.desc,
+):
+    revisions = get_job_transcript_revisions(
+        job_id,
+        limit=limit,
+        offset=offset,
+        sort_direction=sort_direction,
+    )
+
+    if revisions is None:
+        raise NotFoundError("Job not found")
+
+    return revisions
+
+
+@router.get(
+    "/{job_id}/transcript/revisions/{version}",
+    response_model=JobTranscriptRevision,
+)
+def get_transcript_revision(job_id: int, version: int):
+    revision = get_job_transcript_revision(job_id, version)
+
+    if revision is None:
+        raise NotFoundError("Transcript revision not found")
+
+    return revision
 
 
 @router.get("/{job_id}/transcript/search", response_model=JobTranscriptSearchResult)

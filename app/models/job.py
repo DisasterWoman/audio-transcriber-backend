@@ -58,3 +58,32 @@ class JobEventModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+
+
+class TranscriptRevisionModel(Base):
+    __tablename__ = "transcript_revisions"
+    __table_args__ = (
+        Index(
+            "ix_transcript_revisions_job_id_version",
+            "job_id",
+            "version",
+            unique=True,
+        ),
+        Index(
+            "ix_transcript_revisions_job_id_created_at",
+            "job_id",
+            "created_at",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    job_id: Mapped[int] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    transcript_text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
